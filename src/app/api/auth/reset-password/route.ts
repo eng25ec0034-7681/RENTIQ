@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { resetPasswordSchema } from "@/lib/validations";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { handleSupabaseError } from "@/lib/supabase/error-handler";
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,7 +38,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: "Password reset link sent to your email." });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return handleSupabaseError(err);
   }
 }

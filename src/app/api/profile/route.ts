@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { updateProfileSchema } from "@/lib/validations";
+import { handleSupabaseError } from "@/lib/supabase/error-handler";
 
 export async function GET() {
   try {
@@ -38,8 +39,7 @@ export async function GET() {
 
     return NextResponse.json({ profile, roles, userEmail: user.email });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return handleSupabaseError(err);
   }
 }
 
@@ -90,7 +90,6 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ profile: updatedProfile });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return handleSupabaseError(err);
   }
 }
