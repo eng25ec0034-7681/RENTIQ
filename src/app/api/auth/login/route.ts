@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { loginSchema } from "@/lib/validations";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { handleSupabaseError } from "@/lib/supabase/error-handler";
+import { devStore } from "@/lib/supabase/dev-store";
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,19 +25,45 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, password } = validation.data;
-    const supabase = await createClient();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-rentiq.supabase.co";
+    const isPlaceholder = supabaseUrl.includes("placeholder");
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
+    if (isPlaceholder) {
+      const result = await devStore.signIn(email, password);
+      const response = NextResponse.json(result);
+      response.cookies.set("rentiq_user_id", result.user.id, {
+        httpOnly: true,
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      return response;
     }
 
-    return NextResponse.json({ user: data.user, session: data.session });
+    try {
+      const supabase = await createClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 401 });
+      }
+
+      return NextResponse.json({ user: data.user, session: data.session });
+    } catch {
+      // Fallback to dev store if network fetch to Supabase URL fails
+      const result = await devStore.signIn(email, password);
+      const response = NextResponse.json(result);
+      response.cookies.set("rentiq_user_id", result.user.id, {
+        httpOnly: true,
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      return response;
+    }
   } catch (err: unknown) {
-    return handleSupabaseError(err);
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

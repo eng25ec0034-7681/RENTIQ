@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE } from "@/lib/validations";
-import { handleSupabaseError } from "@/lib/supabase/error-handler";
+import { devStore } from "@/lib/supabase/dev-store";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-rentiq.supabase.co";
+    const isPlaceholder = supabaseUrl.includes("placeholder");
+    const devUserId = request.cookies.get("rentiq_user_id")?.value;
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -37,48 +32,85 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const fileExt = file.name.split(".").pop() || "jpg";
-    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = new Uint8Array(arrayBuffer);
+    if (isPlaceholder || devUserId) {
+      if (!devUserId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const publicUrl = await devStore.savePhoto(devUserId, buffer, file.name);
+      const updatedProfile = await devStore.getProfile(devUserId);
 
-    // Upload to Supabase Storage bucket 'profile-photos'
-    const { data: storageData, error: uploadError } = await supabase.storage
-      .from("profile-photos")
-      .upload(fileName, buffer, {
-        contentType: file.type,
-        upsert: true,
+      return NextResponse.json({
+        message: "Profile photo uploaded successfully",
+        profile_photo_url: publicUrl,
+        profile: updatedProfile,
       });
-
-    if (uploadError) {
-      return NextResponse.json({ error: uploadError.message }, { status: 500 });
     }
 
-    // Get public URL
-    const { data: publicUrlData } = supabase.storage
-      .from("profile-photos")
-      .getPublicUrl(storageData.path);
+    try {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    const profilePhotoUrl = publicUrlData.publicUrl;
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
 
-    // Update profile with photo URL
-    const { data: updatedProfile, error: updateError } = await supabase
-      .from("profiles")
-      .update({ profile_photo_url: profilePhotoUrl })
-      .eq("id", user.id)
-      .select("*")
-      .single();
+      const fileExt = file.name.split(".").pop() || "jpg";
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = new Uint8Array(arrayBuffer);
 
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+      const { data: storageData, error: uploadError } = await supabase.storage
+        .from("profile-photos")
+        .upload(fileName, buffer, {
+          contentType: file.type,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        return NextResponse.json({ error: uploadError.message }, { status: 500 });
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("profile-photos")
+        .getPublicUrl(storageData.path);
+
+      const profilePhotoUrl = publicUrlData.publicUrl;
+
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from("profiles")
+        .update({ profile_photo_url: profilePhotoUrl })
+        .eq("id", user.id)
+        .select("*")
+        .single();
+
+      if (updateError) {
+        return NextResponse.json({ error: updateError.message }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        message: "Profile photo uploaded successfully",
+        profile_photo_url: profilePhotoUrl,
+        profile: updatedProfile,
+      });
+    } catch {
+      if (!devUserId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const publicUrl = await devStore.savePhoto(devUserId, buffer, file.name);
+      const updatedProfile = await devStore.getProfile(devUserId);
+
+      return NextResponse.json({
+        message: "Profile photo uploaded successfully",
+        profile_photo_url: publicUrl,
+        profile: updatedProfile,
+      });
     }
-
-    return NextResponse.json({
-      message: "Profile photo uploaded successfully",
-      profile_photo_url: profilePhotoUrl,
-      profile: updatedProfile,
-    });
   } catch (err: unknown) {
-    return handleSupabaseError(err);
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

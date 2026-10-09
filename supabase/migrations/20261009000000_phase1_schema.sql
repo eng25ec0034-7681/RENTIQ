@@ -54,13 +54,15 @@ BEGIN
       NEW.raw_user_meta_data->>'full_name',
       split_part(NEW.email, '@', 1)
     )
-  );
+  )
+  ON CONFLICT (id) DO NOTHING;
 
   -- Assign default roles: customer and owner
   INSERT INTO public.user_roles (user_id, role)
   VALUES 
     (NEW.id, 'customer'),
-    (NEW.id, 'owner');
+    (NEW.id, 'owner')
+  ON CONFLICT (user_id, role) DO NOTHING;
 
   RETURN NEW;
 END;
@@ -96,41 +98,40 @@ CREATE TRIGGER tr_protect_profile_fields
 
 -- 6. Row Level Security (RLS) setup
 
--- Profiles RLS
+-- Enable RLS on tables
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
--- Users can read their own full profile
+-- Profiles RLS Policies
+DROP POLICY IF EXISTS "Users can read own full profile" ON public.profiles;
 CREATE POLICY "Users can read own full profile"
   ON public.profiles FOR SELECT
   USING (auth.uid() = id);
 
--- Users can update their own profile (protected fields handled by trigger)
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
--- User roles RLS
-ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
-
--- Users can read their own assigned roles
+-- User roles RLS Policies
+DROP POLICY IF EXISTS "Users can read own roles" ON public.user_roles;
 CREATE POLICY "Users can read own roles"
   ON public.user_roles FOR SELECT
   USING (auth.uid() = user_id);
-
--- Direct Insert/Update/Delete on user_roles denied for regular users by default (no INSERT/UPDATE/DELETE policies given to authenticated users)
 
 -- 7. Storage Bucket and RLS for profile-photos
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('profile-photos', 'profile-photos', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Public can view profile photos
+-- Storage RLS Policies
+DROP POLICY IF EXISTS "Profile photos are publicly accessible" ON storage.objects;
 CREATE POLICY "Profile photos are publicly accessible"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'profile-photos');
 
--- Authenticated users can upload to their own user folder (bucket_id/user_id/*)
+DROP POLICY IF EXISTS "Users can upload profile photos to own folder" ON storage.objects;
 CREATE POLICY "Users can upload profile photos to own folder"
   ON storage.objects FOR INSERT
   TO authenticated
@@ -139,15 +140,20 @@ CREATE POLICY "Users can upload profile photos to own folder"
     (storage.foldername(name))[1] = auth.uid()::text
   );
 
--- Authenticated users can update/delete their own profile photos
+DROP POLICY IF EXISTS "Users can update own profile photo" ON storage.objects;
 CREATE POLICY "Users can update own profile photo"
   ON storage.objects FOR UPDATE
   TO authenticated
   USING (
     bucket_id = 'profile-photos' AND 
     (storage.foldername(name))[1] = auth.uid()::text
+  )
+  WITH CHECK (
+    bucket_id = 'profile-photos' AND 
+    (storage.foldername(name))[1] = auth.uid()::text
   );
 
+DROP POLICY IF EXISTS "Users can delete own profile photo" ON storage.objects;
 CREATE POLICY "Users can delete own profile photo"
   ON storage.objects FOR DELETE
   TO authenticated
