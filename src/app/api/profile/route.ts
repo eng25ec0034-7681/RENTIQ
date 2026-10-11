@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      const supabase = await createClient();
+      const supabase: any = await createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: rolesError.message }, { status: 500 });
       }
 
-      const roles = rolesData ? rolesData.map((r) => r.role) : [];
+      const roles = rolesData ? rolesData.map((r: any) => r.role) : [];
 
       return NextResponse.json({ profile, roles, userEmail: user.email });
     } catch {
@@ -110,7 +110,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     try {
-      const supabase = await createClient();
+      const supabase: any = await createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();

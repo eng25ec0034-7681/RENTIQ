@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { email } = validation.data;
-    const supabase = await createClient();
+    const supabase: any = await createClient();
 
     const origin = request.headers.get("origin") || request.nextUrl.origin;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {

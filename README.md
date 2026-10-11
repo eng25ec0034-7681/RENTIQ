@@ -71,3 +71,34 @@ npx playwright test
 - Safe area inset padding (`env(safe-area-inset-bottom)`) for fixed bottom navigation.
 - Minimum 44px touch targets.
 - iPhone PWA "Add to Home Screen" instructions banner.
+
+## 📦 Phase 2 Setup
+
+### 1. Supabase migration for Phase 2
+1. Open the Supabase dashboard → **SQL editor**.
+2. Run the migration found in `supabase/migrations/20261011000000_phase2_listings.sql` to create the `listings`, `listing_photos`, and `favorites` tables plus the required RLS policies.
+3. Ensure the storage bucket `listing-photos` exists (public‑read) – create it via **Storage → Buckets** if missing.
+
+### 2. Environment variables
+Create or update `.env.local` with the new Supabase keys if they changed, e.g.:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### 3. Install dependencies & run dev server
+```bash
+npm install   # (if not already done)
+npm run dev    # starts Next.js dev server
+```
+
+### 4. Build & test
+```bash
+npm run build   # production build
+npm run test    # Vitest unit tests
+npx playwright test   # Playwright end‑to‑end tests
+```
+
+You should see all tests pass and the build complete without errors.
+
+---

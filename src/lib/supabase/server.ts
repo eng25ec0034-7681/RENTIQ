@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export async function createClient() {
@@ -7,7 +7,7 @@ export async function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-rentiq.supabase.co";
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder";
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -24,3 +24,18 @@ export async function createClient() {
     },
   });
 }
+
+// --------------------
+// Helper to fetch the current authenticated user (or throw)
+// No extra import needed – getUserOrThrow uses createClient defined above
+
+export async function getUserOrThrow() {
+  const client = await createClient();
+  const { data, error } = await client.auth.getUser();
+  if (error || !data?.user) {
+    throw new Error("User not authenticated");
+  }
+  return data.user;
+}
+
+export const createServerClient = createClient;

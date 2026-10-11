@@ -1,7 +1,8 @@
 "use client";
-
+// src/app/profile/page.tsx
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   User,
   ShieldCheck,
@@ -18,6 +19,8 @@ import {
   XCircle,
   HelpCircle,
   RefreshCw,
+  Package,
+  Heart,
 } from "lucide-react";
 import { Profile, VerificationStatus, UserRole } from "@/types";
 import { validateImageFile } from "@/lib/validations";
@@ -244,27 +247,18 @@ export default function ProfilePage() {
           <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-800 border-2 border-brand-teal/40 flex items-center justify-center shadow-lg">
             {profile?.profile_photo_url ? (
               // eslint-disable-next-next/no-img-element
-              <img
-                src={profile.profile_photo_url}
-                alt={profile.name}
-                className="w-full h-full object-cover"
-              />
+              <img src={profile.profile_photo_url} alt={profile.name} className="w-full h-full object-cover" />
             ) : (
               <User className="w-12 h-12 text-slate-500" />
             )}
           </div>
-          {/* File Upload Trigger */}
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-brand-teal text-slate-950 flex items-center justify-center shadow hover:scale-110 transition min-h-[44px] min-w-[44px]"
             title="Upload Photo"
           >
-            {uploading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Camera className="w-4 h-4" />
-            )}
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
           </button>
           <input
             type="file"
@@ -275,7 +269,6 @@ export default function ProfilePage() {
             id="profile-photo-input"
           />
         </div>
-
         <h2 className="text-xl font-bold text-white mb-0.5">{profile?.name || "Student"}</h2>
         <p className="text-xs text-slate-400 mb-3">{userEmail}</p>
 
@@ -290,27 +283,48 @@ export default function ProfilePage() {
         {/* Roles List (Read Only) */}
         <div className="flex flex-wrap items-center justify-center gap-1.5 mt-1">
           <span className="text-[11px] font-semibold uppercase text-slate-400 mr-1">Roles:</span>
-          {roles.map((r) => (
-            <span
-              key={r}
-              className="px-2.5 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-300 capitalize"
-            >
+          {roles.map((r: any) => (
+            <span key={r} className="px-2.5 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-300 capitalize">
               {r.replace("_", " ")}
             </span>
           ))}
         </div>
       </div>
 
+      {/* My Listings & Favorites Quick Access */}
+      <div className="grid grid-cols-2 gap-3 mt-4 mb-6">
+        <Link
+          href="/my-listings"
+          className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-brand-teal/50 hover:bg-slate-800/60 transition group min-h-[56px] shadow-sm"
+        >
+          <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-brand-teal group-hover:scale-105 transition-transform shrink-0">
+            <Package className="w-5 h-5" />
+          </div>
+          <div className="text-left">
+            <div className="text-sm font-semibold text-white">My Listings</div>
+            <div className="text-[11px] text-slate-400">View & manage items</div>
+          </div>
+        </Link>
+
+        <Link
+          href="/favorites"
+          className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-rose-500/50 hover:bg-slate-800/60 transition group min-h-[56px] shadow-sm"
+        >
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 group-hover:scale-105 transition-transform shrink-0">
+            <Heart className="w-5 h-5 fill-rose-500/30" />
+          </div>
+          <div className="text-left">
+            <div className="text-sm font-semibold text-white">Favorites</div>
+            <div className="text-[11px] text-slate-400">Saved items</div>
+          </div>
+        </Link>
+      </div>
+
       {/* Edit Profile Form */}
       <form onSubmit={handleSaveProfile} className="space-y-4">
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
-          Edit Profile Information
-        </h3>
-
+        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">Edit Profile Information</h3>
         <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-            Full Name
-          </label>
+          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Full Name</label>
           <div className="relative">
             <User className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-500" />
             <input
@@ -322,11 +336,8 @@ export default function ProfilePage() {
             />
           </div>
         </div>
-
         <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-            College / University
-          </label>
+          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">College / University</label>
           <div className="relative">
             <Building className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-500" />
             <input
@@ -338,12 +349,9 @@ export default function ProfilePage() {
             />
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Department
-            </label>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Department</label>
             <div className="relative">
               <GraduationCap className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-500" />
               <input
@@ -355,11 +363,8 @@ export default function ProfilePage() {
               />
             </div>
           </div>
-
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Year of Study
-            </label>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Year of Study</label>
             <div className="relative">
               <Calendar className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-500" />
               <input
@@ -372,11 +377,8 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-
         <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-            Bio
-          </label>
+          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Bio</label>
           <div className="relative">
             <FileText className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-500" />
             <textarea
@@ -388,13 +390,11 @@ export default function ProfilePage() {
             />
           </div>
         </div>
-
         {/* Read-Only Status & Role Warning */}
         <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-xl text-xs text-slate-400 flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-brand-teal shrink-0" />
           <span>Verification status & assigned roles are managed securely by campus admins.</span>
         </div>
-
         <button
           type="submit"
           disabled={saving}
