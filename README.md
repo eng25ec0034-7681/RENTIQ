@@ -102,3 +102,4 @@ npx playwright test   # Playwright end‑to‑end tests
 You should see all tests pass and the build complete without errors.
 
 ---
+---
