@@ -268,7 +268,7 @@ export default function ChatRoomPage() {
                   setIsMenuOpen(false);
                   setShowReportModal(true);
                 }}
-                className="w-full text-left px-3 py-2 text-rose-400 hover:bg-slate-800 rounded-lg flex items-center gap-2 min-h-[44px]"
+                className="w-full text-left px-3 py-2 text-rose-400 hover:bg-slate-800 rounded-lg flex items-center gap-2 min-h-[44px] min-w-[44px]"
               >
                 <ShieldAlert className="w-4 h-4" />
                 Report Student
@@ -276,7 +276,7 @@ export default function ChatRoomPage() {
               <button
                 onClick={handleBlockUser}
                 disabled={blocking}
-                className="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-800 rounded-lg flex items-center gap-2 min-h-[44px]"
+                className="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-800 rounded-lg flex items-center gap-2 min-h-[44px] min-w-[44px]"
               >
                 <UserX className="w-4 h-4" />
                 {isBlocked ? "Unblock Student" : "Block Student"}
@@ -294,7 +294,7 @@ export default function ChatRoomPage() {
           </span>
           <Link
             href={`/listing/${conversation.listing.id}`}
-            className="text-brand-teal font-semibold hover:underline text-[11px]"
+            className="text-brand-teal font-semibold hover:underline text-[11px] min-h-[44px] min-w-[44px] inline-flex items-center"
           >
             View Listing
           </Link>
@@ -406,14 +406,14 @@ export default function ChatRoomPage() {
                 <button
                   type="button"
                   onClick={() => setShowReportModal(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-bold text-xs min-h-[44px]"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-bold text-xs min-h-[44px] min-w-[44px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={reporting}
-                  className="flex-1 py-2.5 rounded-xl bg-rose-500 text-white font-bold text-xs hover:bg-rose-600 transition min-h-[44px] disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-rose-500 text-white font-bold text-xs hover:bg-rose-600 transition min-h-[44px] min-w-[44px] disabled:opacity-50"
                 >
                   {reporting ? "Submitting..." : "Submit Report"}
                 </button>

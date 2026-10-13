@@ -103,7 +103,7 @@ export default function OrdersPage() {
       <div className="flex p-1 bg-slate-900 border border-slate-800 rounded-2xl mb-5">
         <button
           onClick={() => setActiveTab("renter")}
-          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition min-h-[44px] flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 ${
             activeTab === "renter"
               ? "bg-brand-teal text-slate-950 shadow"
               : "text-slate-400 hover:text-slate-200"
@@ -115,7 +115,7 @@ export default function OrdersPage() {
 
         <button
           onClick={() => setActiveTab("owner")}
-          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition min-h-[44px] flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 ${
             activeTab === "owner"
               ? "bg-brand-teal text-slate-950 shadow"
               : "text-slate-400 hover:text-slate-200"
@@ -155,7 +155,7 @@ export default function OrdersPage() {
           {activeTab === "renter" ? (
             <Link
               href="/"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-teal text-slate-950 text-xs font-bold hover:bg-brand-teal-light transition min-h-[44px]"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand-teal text-slate-950 text-xs font-bold hover:bg-brand-teal-light transition min-h-[44px] min-w-[44px]"
             >
               <Sparkles className="w-4 h-4" />
               Explore Items
@@ -163,7 +163,7 @@ export default function OrdersPage() {
           ) : (
             <Link
               href="/give"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-teal text-slate-950 text-xs font-bold hover:bg-brand-teal-light transition min-h-[44px]"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand-teal text-slate-950 text-xs font-bold hover:bg-brand-teal-light transition min-h-[44px] min-w-[44px]"
             >
               List an Item
             </Link>
@@ -179,7 +179,7 @@ export default function OrdersPage() {
               <Link
                 key={rental.id}
                 href={`/orders/${rental.id}`}
-                className="block p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition shadow-sm group min-h-[44px]"
+                className="block p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition shadow-sm group min-h-[44px] min-w-[44px]"
               >
                 <div className="flex items-start justify-between gap-3 mb-2.5">
                   <div className="min-w-0 flex-1">

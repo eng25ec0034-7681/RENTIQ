@@ -26,7 +26,7 @@ export default function FiltersPanel({ onChange }: { onChange: (filters: Filters
       <input
         type="text"
         placeholder="Search..."
-        className="w-full rounded bg-neutral-700 p-2 text-white"
+        className="w-full rounded bg-neutral-700 p-2 text-white text-base min-h-[44px]"
         onChange={(e) => update('text', e.target.value)}
       />
 

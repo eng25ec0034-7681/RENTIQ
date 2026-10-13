@@ -169,7 +169,7 @@ export default function OrderDetailPage() {
     return (
       <div className="flex-1 p-6 text-center">
         <p className="text-sm text-red-400 mb-4">{error || "Rental not found"}</p>
-        <Link href="/orders" className="text-brand-teal text-xs font-semibold hover:underline">
+        <Link href="/orders" className="text-brand-teal text-xs font-semibold hover:underline min-h-[44px] min-w-[44px] inline-flex items-center justify-center">
           Return to Orders
         </Link>
       </div>
@@ -184,14 +184,14 @@ export default function OrderDetailPage() {
       <div className="flex items-center justify-between mb-4">
         <Link
           href="/orders"
-          className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition py-1"
+          className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition py-1 min-h-[44px] min-w-[44px]"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Orders
         </Link>
         <button
           onClick={openChat}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 text-brand-teal text-xs font-bold rounded-xl border border-slate-700 hover:bg-slate-700 transition min-h-[44px]"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 text-brand-teal text-xs font-bold rounded-xl border border-slate-700 hover:bg-slate-700 transition min-h-[44px] min-w-[44px]"
         >
           <MessageSquare className="w-3.5 h-3.5" />
           Chat with {otherPerson?.name?.split(" ")[0] || "Student"}
@@ -295,14 +295,14 @@ export default function OrderDetailPage() {
                 <button
                   onClick={() => handleTransition("ACCEPTED")}
                   disabled={actionLoading}
-                  className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px]"
+                  className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px] min-w-[44px]"
                 >
                   Accept Request
                 </button>
                 <button
                   onClick={() => handleTransition("REJECTED")}
                   disabled={actionLoading}
-                  className="py-3 px-4 rounded-xl bg-red-500/10 text-red-400 border border-red-500/30 font-bold text-xs hover:bg-red-500/20 transition min-h-[44px]"
+                  className="py-3 px-4 rounded-xl bg-red-500/10 text-red-400 border border-red-500/30 font-bold text-xs hover:bg-red-500/20 transition min-h-[44px] min-w-[44px]"
                 >
                   Decline Request
                 </button>
@@ -311,7 +311,7 @@ export default function OrderDetailPage() {
               <button
                 onClick={() => handleTransition("CANCELLED")}
                 disabled={actionLoading}
-                className="w-full py-3 px-4 rounded-xl bg-red-500/10 text-red-400 border border-red-500/30 font-bold text-xs hover:bg-red-500/20 transition min-h-[44px]"
+                className="w-full py-3 px-4 rounded-xl bg-red-500/10 text-red-400 border border-red-500/30 font-bold text-xs hover:bg-red-500/20 transition min-h-[44px] min-w-[44px]"
               >
                 Cancel Request
               </button>
@@ -332,7 +332,7 @@ export default function OrderDetailPage() {
                     <button
                       onClick={() => handleTransition("CONFIRMED", "PAID")}
                       disabled={actionLoading}
-                      className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px]"
+                      className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px] min-w-[44px]"
                     >
                       Accept Payment &amp; Confirm
                     </button>
@@ -340,7 +340,7 @@ export default function OrderDetailPage() {
                     <button
                       onClick={() => handleTransition("CONFIRMED")}
                       disabled={actionLoading}
-                      className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px]"
+                      className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px] min-w-[44px]"
                     >
                       Confirm Rental
                     </button>
@@ -350,7 +350,7 @@ export default function OrderDetailPage() {
                 <button
                   onClick={() => handleTransition("CONFIRMED")}
                   disabled={actionLoading}
-                  className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px]"
+                  className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px] min-w-[44px]"
                 >
                   Confirm Rental
                 </button>
@@ -358,7 +358,7 @@ export default function OrderDetailPage() {
               <button
                 onClick={() => handleTransition("CANCELLED")}
                 disabled={actionLoading}
-                className="py-3 px-4 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 font-semibold text-xs hover:text-white transition min-h-[44px]"
+                className="py-3 px-4 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 font-semibold text-xs hover:text-white transition min-h-[44px] min-w-[44px]"
               >
                 Cancel
               </button>
@@ -392,7 +392,7 @@ export default function OrderDetailPage() {
                   }
                 }}
                 disabled={actionLoading}
-                className="w-full py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs hover:bg-emerald-500/20 transition flex items-center justify-center gap-1.5 min-h-[44px]"
+                className="w-full py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs hover:bg-emerald-500/20 transition flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px]"
               >
                 <DollarSign className="w-4 h-4" />
                 Confirm Payment Received ({rental.payment_method})
@@ -401,7 +401,7 @@ export default function OrderDetailPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowEvidenceModal("HANDOVER")}
-                className="flex-1 py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition flex items-center justify-center gap-1.5 min-h-[44px]"
+                className="flex-1 py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px]"
               >
                 <Camera className="w-4 h-4" />
                 Upload Handover Photos
@@ -409,7 +409,7 @@ export default function OrderDetailPage() {
               <button
                 onClick={() => handleTransition("ITEM_PICKED_UP")}
                 disabled={actionLoading}
-                className="flex-1 py-3 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs hover:bg-slate-700 transition min-h-[44px]"
+                className="flex-1 py-3 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs hover:bg-slate-700 transition min-h-[44px] min-w-[44px]"
               >
                 Confirm Handover
               </button>
@@ -422,7 +422,7 @@ export default function OrderDetailPage() {
           <button
             onClick={() => handleTransition("RENTAL_ACTIVE")}
             disabled={actionLoading}
-            className="w-full py-3 px-4 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition min-h-[44px]"
+            className="w-full py-3 px-4 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition min-h-[44px] min-w-[44px]"
           >
             Activate Rental Period
           </button>
@@ -436,14 +436,14 @@ export default function OrderDetailPage() {
                 <button
                   onClick={() => handleTransition("RETURN_REQUESTED")}
                   disabled={actionLoading}
-                  className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px]"
+                  className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px] min-w-[44px]"
                 >
                   Request Return
                 </button>
               ) : (
                 <button
                   onClick={() => setShowEvidenceModal("RETURN")}
-                  className="py-3 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs hover:bg-slate-700 transition flex items-center justify-center gap-1.5 min-h-[44px]"
+                  className="py-3 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs hover:bg-slate-700 transition flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px]"
                 >
                   <Camera className="w-4 h-4" />
                   Return Evidence
@@ -452,7 +452,7 @@ export default function OrderDetailPage() {
               <button
                 onClick={() => handleTransition("DISPUTED")}
                 disabled={actionLoading}
-                className="py-3 px-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-xs hover:bg-rose-500/20 transition min-h-[44px]"
+                className="py-3 px-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-xs hover:bg-rose-500/20 transition min-h-[44px] min-w-[44px]"
               >
                 Open Dispute
               </button>
@@ -461,7 +461,7 @@ export default function OrderDetailPage() {
               <button
                 onClick={() => handleTransition("DAMAGED_REVIEW")}
                 disabled={actionLoading}
-                className="w-full py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 font-semibold text-xs hover:bg-amber-500/20 transition min-h-[44px]"
+                className="w-full py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 font-semibold text-xs hover:bg-amber-500/20 transition min-h-[44px] min-w-[44px]"
               >
                 Flag Item Damage / Review
               </button>
@@ -475,7 +475,7 @@ export default function OrderDetailPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowEvidenceModal("RETURN")}
-                className="flex-1 py-3 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs hover:bg-slate-700 transition flex items-center justify-center gap-1.5 min-h-[44px]"
+                className="flex-1 py-3 px-4 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs hover:bg-slate-700 transition flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px]"
               >
                 <Camera className="w-4 h-4" />
                 Add Return Photos
@@ -484,7 +484,7 @@ export default function OrderDetailPage() {
                 <button
                   onClick={() => handleTransition("RETURNED")}
                   disabled={actionLoading}
-                  className="flex-1 py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px]"
+                  className="flex-1 py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px] min-w-[44px]"
                 >
                   Confirm Item Returned
                 </button>
@@ -499,7 +499,7 @@ export default function OrderDetailPage() {
             <button
               onClick={() => handleTransition("COMPLETED")}
               disabled={actionLoading}
-              className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px]"
+              className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition min-h-[44px] min-w-[44px]"
             >
               Mark Completed
             </button>
@@ -507,7 +507,7 @@ export default function OrderDetailPage() {
               <button
                 onClick={() => handleTransition("DAMAGED_REVIEW")}
                 disabled={actionLoading}
-                className="py-3 px-4 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 font-bold text-xs hover:bg-orange-500/20 transition min-h-[44px]"
+                className="py-3 px-4 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 font-bold text-xs hover:bg-orange-500/20 transition min-h-[44px] min-w-[44px]"
               >
                 Report Damage
               </button>
@@ -524,7 +524,7 @@ export default function OrderDetailPage() {
             <button
               onClick={() => handleTransition("COMPLETED")}
               disabled={actionLoading}
-              className="w-full py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-semibold text-xs hover:bg-slate-700 transition min-h-[44px]"
+              className="w-full py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-semibold text-xs hover:bg-slate-700 transition min-h-[44px] min-w-[44px]"
             >
               Resolve & Mark Completed
             </button>
@@ -547,7 +547,7 @@ export default function OrderDetailPage() {
           </h2>
           <button
             onClick={() => setShowEvidenceModal("HANDOVER")}
-            className="text-[11px] font-bold text-brand-teal hover:underline flex items-center gap-1"
+            className="text-[11px] font-bold text-brand-teal hover:underline flex items-center gap-1 min-h-[44px] min-w-[44px]"
           >
             <Camera className="w-3.5 h-3.5" />
             + Add Evidence
@@ -586,7 +586,7 @@ export default function OrderDetailPage() {
                         href={url}
                         target="_blank"
                         rel="noreferrer"
-                        className="relative h-20 rounded-lg overflow-hidden border border-slate-700 bg-slate-900 group block"
+                        className="relative h-20 rounded-lg overflow-hidden border border-slate-700 bg-slate-900 group block min-h-[44px] min-w-[44px]"
                       >
                         {/* eslint-disable-next-next/no-img-element */}
                         <img src={url} alt="Evidence" className="w-full h-full object-cover" />
@@ -643,7 +643,7 @@ export default function OrderDetailPage() {
               </h3>
               <button
                 onClick={() => setShowEvidenceModal(null)}
-                className="w-9 h-9 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center min-h-[44px] min-w-[44px]"
+                className="w-11 h-11 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center min-h-[44px] min-w-[44px]"
               >
                 ✕
               </button>
@@ -667,7 +667,7 @@ export default function OrderDetailPage() {
                     }
                     setEvidenceFiles(files);
                   }}
-                  className="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-teal file:text-slate-950 hover:file:bg-brand-teal-light min-h-[44px]"
+                  className="w-full text-base text-slate-400 file:mr-3 file:py-2.5 file:px-3 file:rounded-xl file:border-0 file:text-base file:font-semibold file:bg-brand-teal file:text-slate-950 hover:file:bg-brand-teal-light min-h-[44px] min-w-[44px]"
                 />
                 {evidenceFiles.length > 0 && (
                   <p className="text-[11px] text-slate-400 mt-1">
@@ -708,14 +708,14 @@ export default function OrderDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowEvidenceModal(null)}
-                  className="flex-1 py-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-bold text-xs min-h-[44px]"
+                  className="flex-1 py-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-bold text-xs min-h-[44px] min-w-[44px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={uploadingEvidence}
-                  className="flex-1 py-3 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition flex items-center justify-center gap-2 min-h-[44px] disabled:opacity-50"
+                  className="flex-1 py-3 rounded-xl bg-brand-teal text-slate-950 font-bold text-xs hover:bg-brand-teal-light transition flex items-center justify-center gap-2 min-h-[44px] min-w-[44px] disabled:opacity-50"
                 >
                   {uploadingEvidence ? (
                     <>

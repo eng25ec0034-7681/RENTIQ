@@ -76,7 +76,7 @@ export default function MessagesPage() {
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-teal text-slate-950 text-xs font-bold hover:bg-brand-teal-light transition min-h-[44px]"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand-teal text-slate-950 text-xs font-bold hover:bg-brand-teal-light transition min-h-[44px] min-w-[44px]"
           >
             Explore Listings
           </Link>
@@ -91,7 +91,7 @@ export default function MessagesPage() {
               <Link
                 key={c.id}
                 href={`/messages/${c.id}`}
-                className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-brand-teal/40 hover:bg-slate-800/60 transition group min-h-[64px]"
+                className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-brand-teal/40 hover:bg-slate-800/60 transition group min-h-[64px] min-w-[44px]"
               >
                 {/* Avatar */}
                 <div className="relative shrink-0">

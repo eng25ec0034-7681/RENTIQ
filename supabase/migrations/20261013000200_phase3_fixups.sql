@@ -222,17 +222,24 @@ BEGIN
         END IF;
     END IF;
 
-    -- Payment status changes: allow only PENDING->PAID by the owner (or service_role).
-    -- Reject any other payment_status change except by service_role.
+    -- Payment status changes: allow only PENDING->PAID by the owner or service_role
+    -- while the rental is in a payment-eligible status.
     IF NEW.payment_status IS DISTINCT FROM OLD.payment_status THEN
-        IF auth.role() = 'service_role' THEN
-            -- Service role is allowed any payment_status change
-            NULL;
-        ELSIF auth.uid() = OLD.owner_id AND OLD.payment_status = 'PENDING' AND NEW.payment_status = 'PAID' THEN
-            -- Only owner may confirm payment from PENDING to PAID
+        IF OLD.payment_status = 'PENDING'
+           AND NEW.payment_status = 'PAID'
+           AND NEW.status IN (
+               'ACCEPTED',
+               'PAYMENT_PENDING',
+               'CONFIRMED',
+               'ITEM_PICKED_UP',
+               'RENTAL_ACTIVE',
+               'RETURNED',
+               'COMPLETED'
+           )
+           AND (auth.role() = 'service_role' OR auth.uid() = OLD.owner_id) THEN
             NULL;
         ELSE
-            RAISE EXCEPTION 'Unauthorized payment_status change: only owner may transition PENDING to PAID';
+            RAISE EXCEPTION 'Unauthorized payment_status change';
         END IF;
     END IF;
 
@@ -249,11 +256,67 @@ FOR EACH ROW EXECUTE FUNCTION public.fn_lock_rental_immutable_columns();
 -- 5. TRANSITIONS: SERVICE-ROLE CHECK, NO USER EXPIRED, AUTO-REJECT OVERLAPS
 -- - auth.role() = 'service_role' replaces current_setting
 -- - Remove user-path EXPIRED transition (service role only)
--- - Session flag 'app.auto_reject': bypasses transition logic on nested auto-reject updates
 -- - When owner accepts (REQUESTED to ACCEPTED), automatically reject every other
 --   overlapping REQUESTED rental: update status to REJECTED, insert audit event,
 --   and insert notification for the affected renter.
 -- ------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION public.fn_auto_reject_overlaps(
+    p_listing uuid,
+    p_accepted uuid,
+    p_start date,
+    p_end date,
+    p_actor uuid
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_other record;
+BEGIN
+    PERFORM 1
+    FROM public.listings
+    WHERE id = p_listing
+    FOR UPDATE;
+
+    FOR v_other IN
+        SELECT id, renter_id
+        FROM public.rentals
+        WHERE listing_id = p_listing
+          AND id <> p_accepted
+          AND status = 'REQUESTED'
+          AND start_date <= p_end
+          AND end_date >= p_start
+    LOOP
+        UPDATE public.rentals
+        SET status = 'REJECTED',
+            updated_at = now()
+        WHERE id = v_other.id
+          AND status = 'REQUESTED'
+          AND start_date <= p_end
+          AND end_date >= p_start;
+
+        IF FOUND THEN
+            INSERT INTO public.rental_status_events (rental_id, from_status, to_status, changed_by, note)
+            VALUES (v_other.id, 'REQUESTED', 'REJECTED', p_actor, 'Item no longer available for these dates');
+
+            INSERT INTO public.notifications (user_id, type, title, body, link)
+            VALUES (
+                v_other.renter_id,
+                'RENTAL_STATUS_REJECTED',
+                'Rental Request Declined',
+                'Item no longer available for these dates.',
+                '/orders/' || v_other.id::text
+            );
+        END IF;
+    END LOOP;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.fn_auto_reject_overlaps(uuid, uuid, date, date, uuid)
+FROM PUBLIC, authenticated, anon;
 
 CREATE OR REPLACE FUNCTION public.fn_enforce_rental_status_transition()
 RETURNS trigger
@@ -268,14 +331,8 @@ DECLARE
     v_is_service_role boolean;
     v_is_valid boolean := false;
     v_recipient uuid;
-    v_other record;
 BEGIN
     NEW.updated_at := now();
-
-    -- Bypass transition logic when nested auto-reject session flag is active
-    IF current_setting('app.auto_reject', true) = 'on' THEN
-        RETURN NEW;
-    END IF;
 
     -- On initial creation:
     IF TG_OP = 'INSERT' THEN
@@ -326,41 +383,15 @@ BEGIN
         IF OLD.status = 'REQUESTED' THEN
             IF NEW.status = 'ACCEPTED' AND v_is_owner THEN
                 v_is_valid := true;
-
-                -- Set session flag so nested updates bypass transition logic without recursive triggers
-                PERFORM set_config('app.auto_reject', 'on', true);
-
-                -- Auto-reject every other overlapping REQUESTED rental for the same listing
-                FOR v_other IN
-                    SELECT id, renter_id FROM public.rentals
-                    WHERE listing_id = NEW.listing_id
-                      AND id <> NEW.id
-                      AND status = 'REQUESTED'
-                      AND (start_date <= NEW.end_date AND end_date >= NEW.start_date)
-                LOOP
-                    -- 1. Set status to REJECTED
-                    UPDATE public.rentals
-                    SET status = 'REJECTED',
-                        updated_at = now()
-                    WHERE id = v_other.id;
-
-                    -- 2. Insert rental_status_events row with exact audit note
-                    INSERT INTO public.rental_status_events (rental_id, from_status, to_status, changed_by, note)
-                    VALUES (v_other.id, 'REQUESTED', 'REJECTED', v_actor, 'Item no longer available for these dates');
-
-                    -- 3. Insert notification for the affected renter
-                    INSERT INTO public.notifications (user_id, type, title, body, link)
-                    VALUES (
-                        v_other.renter_id,
-                        'RENTAL_STATUS_REJECTED',
-                        'Rental Request Declined',
-                        'Item no longer available for these dates.',
-                        '/orders/' || v_other.id::text
+                IF OLD.status = 'REQUESTED' AND NEW.status = 'ACCEPTED' THEN
+                    PERFORM public.fn_auto_reject_overlaps(
+                        NEW.listing_id,
+                        NEW.id,
+                        NEW.start_date,
+                        NEW.end_date,
+                        v_actor
                     );
-                END LOOP;
-
-                -- Reset session flag after loop completes
-                PERFORM set_config('app.auto_reject', 'off', true);
+                END IF;
 
             ELSIF NEW.status = 'REJECTED' AND v_is_owner THEN
                 v_is_valid := true;
@@ -503,7 +534,7 @@ SET payment_status = 'PAID'
 WHERE id = '<rental_id_where_renter_is_11111111-1111-1111-1111-111111111111>';
 
 -- EXPECTED RESULT:
--- ERROR: Unauthorized payment_status change: only owner may transition PENDING to PAID
+-- ERROR: Unauthorized payment_status change
 ROLLBACK;
 
 
@@ -548,7 +579,27 @@ ROLLBACK;
 
 
 --------------------------------------------------------------------------------
-TEST 3: RENTER CANNOT UPDATE OR DELETE RENTAL_EVIDENCE
+TEST 3: RENTER CANNOT CALL OVERLAP REJECTION FUNCTION DIRECTLY
+--------------------------------------------------------------------------------
+-- Simulate authenticated renter attempting to invoke the restricted function
+BEGIN;
+SET LOCAL role authenticated;
+SET LOCAL "request.jwt.claims" = '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}';
+
+SELECT public.fn_auto_reject_overlaps(
+    '33333333-3333-3333-3333-333333333333',
+    '44444444-4444-4444-4444-444444444444',
+    DATE '2026-10-13',
+    DATE '2026-10-14',
+    '11111111-1111-1111-1111-111111111111'
+);
+-- EXPECTED RESULT:
+-- ERROR: permission denied for function fn_auto_reject_overlaps
+ROLLBACK;
+
+
+--------------------------------------------------------------------------------
+TEST 4: RENTER CANNOT UPDATE OR DELETE RENTAL_EVIDENCE
 --------------------------------------------------------------------------------
 BEGIN;
 -- Set role and auth uid to renter
@@ -572,7 +623,7 @@ ROLLBACK;
 
 
 --------------------------------------------------------------------------------
-TEST 4: NON-PARTICIPANT CANNOT READ A RENTAL
+TEST 5: NON-PARTICIPANT CANNOT READ A RENTAL
 --------------------------------------------------------------------------------
 BEGIN;
 -- Authenticate as a student who is neither the renter nor the owner
@@ -589,7 +640,7 @@ ROLLBACK;
 
 
 --------------------------------------------------------------------------------
-TEST 5: QUERY LISTING ALL STORAGE.OBJECTS POLICIES
+TEST 6: QUERY LISTING ALL STORAGE.OBJECTS POLICIES
 --------------------------------------------------------------------------------
 -- Inspect all active storage.objects policies to ensure no FOR ALL policies exist on rental-evidence
 SELECT
