@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { X, KeyRound, Printer, Truck, PlusCircle } from "lucide-react";
+import { X, KeyRound, Printer, Truck, PlusCircle, Package, Heart } from "lucide-react";
 
 interface ActionSheetProps {
   isOpen: boolean;
@@ -25,6 +25,20 @@ export function ActionSheet({ isOpen, onClose }: ActionSheetProps) {
       href: "/give",
       icon: PlusCircle,
       color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+    },
+    {
+      title: "My Listings",
+      subtitle: "Manage and track your active rental items",
+      href: "/my-listings",
+      icon: Package,
+      color: "bg-amber-500/10 text-amber-400 border-amber-500/30",
+    },
+    {
+      title: "My Favorites",
+      subtitle: "View items you saved for later",
+      href: "/favorites",
+      icon: Heart,
+      color: "bg-rose-500/10 text-rose-400 border-rose-500/30",
     },
     {
       title: "Print / Xerox",

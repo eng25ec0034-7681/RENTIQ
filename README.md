@@ -71,3 +71,53 @@ npx playwright test
 - Safe area inset padding (`env(safe-area-inset-bottom)`) for fixed bottom navigation.
 - Minimum 44px touch targets.
 - iPhone PWA "Add to Home Screen" instructions banner.
+
+## 📦 Phase 2 Setup
+
+### 1. Supabase migration for Phase 2
+1. Open the Supabase dashboard → **SQL editor**.
+2. Run the migration found in `supabase/migrations/20261011000000_phase2_listings.sql` to create the `listings`, `listing_photos`, and `favorites` tables plus the required RLS policies.
+3. Ensure the storage bucket `listing-photos` exists (public‑read) – create it via **Storage → Buckets** if missing.
+
+### 2. Environment variables
+Create or update `.env.local` with the new Supabase keys if they changed, e.g.:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### 3. Install dependencies & run dev server
+```bash
+npm install   # (if not already done)
+npm run dev    # starts Next.js dev server
+```
+
+### 4. Build & test
+```bash
+npm run build   # production build
+npm run test    # Vitest unit tests
+npx playwright test   # Playwright end‑to‑end tests
+```
+
+You should see all tests pass and the build complete without errors.
+
+## 📦 Phase 3 Setup: Rentals, Messaging, Evidence & Notifications
+
+### 1. Supabase Migrations (In Order)
+1. Run Phase 1: `supabase/migrations/20261009000000_phase1_schema.sql` (if not already run)
+2. Run Phase 2: `supabase/migrations/20261011000000_phase2_listings.sql` (if not already run)
+3. Run Phase 3: `supabase/migrations/20261013000100_phase3_security_fix.sql` in the **SQL Editor**.
+   - Creates `rentals`, `rental_status_events`, `rental_evidence`, `conversations`, `messages`, `blocks`, `reports`, `notifications`.
+   - Creates private storage bucket `rental-evidence` (signed URLs only).
+   - Enforces database triggers for date overlap prevention, pricing recalculation (₹0 deposit, ₹0 fee), locked identity/pricing columns, and allowed status transitions.
+   - Adds `messages` and `notifications` to `supabase_realtime` publication.
+
+### 2. Phase 3 Features
+- **Rental Request & Booking**: Rent items with live pricing calculations, start/end dates, pickup/delivery choice, 48-hour lazy expiry, and overlap prevention.
+- **Orders Dashboard & Workflow**: `/orders` with "My Rentals" and "Rental Requests" tabs; `/orders/[id]` detail screen with database-enforced transitions (Accept, Decline, Cancel, Confirm handover, Request return, Confirm return, Dispute, Damage Review).
+- **Condition & Return Evidence**: Up to 6 photos per handover/return in private `rental-evidence` bucket with signed URLs and condition notes.
+- **Direct Messaging**: `/messages` conversation list and `/messages/[id]` realtime chat with optimistic sending, block & report safety controls.
+- **Realtime Notifications**: Header bell icon with live badge counter, `/notifications` page with mark-as-read and direct routing.
+- **Security & Privacy**: Strict RLS on all tables, server-side Zod validation, zero exposure of email/phone numbers (name & college only), IDOR protection.
+
+---

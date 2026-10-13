@@ -11,7 +11,7 @@ export async function POST() {
 
     if (!isPlaceholder) {
       try {
-        const supabase = await createClient();
+        const supabase: any = await createClient();
         await supabase.auth.signOut();
       } catch {
         // Safe to ignore

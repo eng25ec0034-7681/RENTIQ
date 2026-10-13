@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const supabase = await createClient();
+      const supabase: any = await createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();

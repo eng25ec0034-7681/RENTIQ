@@ -37,3 +37,12 @@ next-env.d.ts
 
 # scratch
 scratch/
+
+# agent scratch output
+errors.txt
+
+# plain env file (the pattern above only covers .env.local style names)
+.env
+
+# test coverage output
+/coverage
