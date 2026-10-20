@@ -11,6 +11,8 @@ export type Listing = {
   delivery_available: boolean;
   pickup_available: boolean;
   rules?: string;
+  owner_phone?: string | null;
+  share_phone?: boolean;
   status: string;
   coverPhotoUrl?: string;
   listing_photos?: Array<{ storage_path: string; position: number }>;
@@ -90,6 +92,7 @@ export interface Rental {
   total_amount: number;
   fulfillment: FulfillmentType;
   message?: string | null;
+  pickup_note?: string | null;
   payment_method: PaymentMethod;
   payment_status: PaymentStatus;
   status: RentalStatus;

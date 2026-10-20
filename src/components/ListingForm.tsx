@@ -4,9 +4,15 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient as createSupabaseClient } from '@/lib/supabase/client';
 import { listingSchema, listingCategories, listingConditions, ListingInput } from '@/lib/validation/listingSchema';
+import { contactSchema } from '@/lib/validation/contactSchema';
 import { PhotoUploader } from '@/components/PhotoUploader';
 
-export default function ListingForm() {
+interface ListingFormProps {
+  initialData?: Partial<ListingInput>;
+  listingId?: string;
+}
+
+export default function ListingForm({ initialData, listingId }: ListingFormProps = {}) {
   const router = useRouter();
   const supabase = createSupabaseClient();
 
@@ -14,6 +20,7 @@ export default function ListingForm() {
     pickup_available: true,
     delivery_available: false,
     rules: 'Return in same condition. Report any issues immediately.',
+    ...initialData,
   });
   const [photos, setPhotos] = useState<File[]>([]);
   const [error, setError] = useState<string>('');
@@ -22,22 +29,45 @@ export default function ListingForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const target = e.target as HTMLInputElement;
     const { name, value, type, checked } = target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : (type === 'number' ? Number(value) : value),
-    }));
+    setFormData(prev => {
+      const next = {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : (type === 'number' ? Number(value) : value),
+      };
+      if (name === 'owner_phone' && !value.trim()) {
+        next.share_phone = false;
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (photos.length === 0) {
+    if (photos.length === 0 && !listingId) {
       setError('Please add at least one photo before publishing.');
       return;
     }
 
-    const parse = listingSchema.safeParse(formData);
+    const phoneVal = formData.owner_phone ? formData.owner_phone.trim() : null;
+    const shareVal = Boolean(phoneVal && formData.share_phone);
+
+    const contactParse = contactSchema.safeParse({
+      owner_phone: phoneVal || null,
+      share_phone: shareVal,
+    });
+    if (!contactParse.success) {
+      const issueMessages = contactParse.error.issues.map((iss) => iss.message);
+      setError(issueMessages.join('\n'));
+      return;
+    }
+
+    const parse = listingSchema.safeParse({
+      ...formData,
+      owner_phone: phoneVal || null,
+      share_phone: shareVal,
+    });
     if (!parse.success) {
       const issueMessages = parse.error.issues.map((iss) => `${iss.path.join('.')}: ${iss.message}`);
       setError(issueMessages.join('\n'));
@@ -46,11 +76,17 @@ export default function ListingForm() {
 
     setSubmitting(true);
     try {
-      // 1. Call POST /api/listings
-      const response = await fetch('/api/listings', {
-        method: 'POST',
+      // 1. Call create or update endpoint
+      const endpoint = listingId ? `/api/listings/${listingId}` : '/api/listings';
+      const method = listingId ? 'PATCH' : 'POST';
+      const response = await fetch(endpoint, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(parse.data),
+        body: JSON.stringify({
+          ...parse.data,
+          owner_phone: phoneVal || null,
+          share_phone: shareVal,
+        }),
       });
 
       const result = await response.json().catch(() => ({}));
@@ -252,6 +288,36 @@ export default function ListingForm() {
             className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-base placeholder-slate-500 focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal min-h-[44px]"
             onChange={handleChange}
           />
+        </div>
+      </div>
+
+      <div className="space-y-3 pt-1">
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            Mobile number (Optional)
+          </label>
+          <input
+            type="tel"
+            name="owner_phone"
+            value={formData.owner_phone || ''}
+            placeholder="e.g. 9876543210 or +919876543210"
+            className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-base placeholder-slate-500 focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal min-h-[44px]"
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
+          <label className={`flex items-center gap-2 text-sm min-h-[44px] ${!formData.owner_phone?.trim() ? 'opacity-50 cursor-not-allowed text-slate-500' : 'cursor-pointer text-slate-300'}`}>
+            <input
+              type="checkbox"
+              name="share_phone"
+              checked={Boolean(formData.share_phone && formData.owner_phone?.trim())}
+              disabled={!formData.owner_phone?.trim()}
+              onChange={handleChange}
+              className="w-4 h-4 rounded bg-slate-950 border-slate-800 text-brand-teal focus:ring-brand-teal"
+            />
+            <span>Share my number with confirmed renters</span>
+          </label>
         </div>
       </div>
 

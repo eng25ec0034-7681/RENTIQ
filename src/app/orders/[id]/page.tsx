@@ -274,6 +274,12 @@ export default function OrderDetailPage() {
             <span>Platform Fee</span>
             <span>₹0 (Student Benefit)</span>
           </div>
+          {rental.pickup_note && (
+            <div className="pt-2 border-t border-slate-800">
+              <span className="text-slate-400 block mb-0.5">Pickup Point:</span>
+              <p className="text-xs text-white font-medium">{rental.pickup_note}</p>
+            </div>
+          )}
           {rental.message && (
             <div className="pt-2 border-t border-slate-800">
               <span className="text-slate-400 block mb-0.5">Note:</span>

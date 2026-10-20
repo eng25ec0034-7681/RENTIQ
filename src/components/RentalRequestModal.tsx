@@ -8,6 +8,7 @@ import {
   calculateRentalAmounts,
   getTodayDateString,
 } from "@/lib/validation/rentalSchema";
+import { pickupNoteSchema } from "@/lib/validation/contactSchema";
 
 interface RentalRequestModalProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export function RentalRequestModal({ isOpen, onClose, listing }: RentalRequestMo
     listing.pickup_available ? "PICKUP" : "DELIVERY"
   );
   const [message, setMessage] = useState("");
+  const [pickupNote, setPickupNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "UPI">("CASH");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +67,16 @@ export function RentalRequestModal({ isOpen, onClose, listing }: RentalRequestMo
       return;
     }
 
+    const noteValidation = pickupNoteSchema.safeParse({
+      pickup_note: pickupNote.trim(),
+    });
+
+    if (!noteValidation.success) {
+      const issue = noteValidation.error.errors[0]?.message || "Pickup point must be between 3 and 200 characters";
+      setError(issue);
+      return;
+    }
+
     if (exceedsMaxDays) {
       setError(`Duration cannot exceed maximum limit of ${listing.max_rental_days} days`);
       return;
@@ -81,6 +93,7 @@ export function RentalRequestModal({ isOpen, onClose, listing }: RentalRequestMo
           end_date: endDate,
           fulfillment,
           message: message.trim() || undefined,
+          pickup_note: noteValidation.data.pickup_note,
           payment_method: paymentMethod,
         }),
       });
@@ -237,6 +250,23 @@ export function RentalRequestModal({ isOpen, onClose, listing }: RentalRequestMo
                 📱 UPI at Handover
               </button>
             </div>
+          </div>
+
+          {/* Pickup Point */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              Pickup point *
+            </label>
+            <input
+              type="text"
+              required
+              minLength={3}
+              maxLength={200}
+              value={pickupNote}
+              onChange={(e) => setPickupNote(e.target.value)}
+              placeholder="e.g. Near Library Gate, Ground Floor"
+              className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-base focus:outline-none focus:border-brand-teal min-h-[44px]"
+            />
           </div>
 
           {/* Optional Message */}

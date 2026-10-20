@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageSquare, Calendar, Loader2 } from "lucide-react";
+import { Calendar, Loader2, Phone } from "lucide-react";
 import { RentalRequestModal } from "@/components/RentalRequestModal";
 
 interface ListingDetailActionsProps {
@@ -21,8 +21,9 @@ interface ListingDetailActionsProps {
 export function ListingDetailActions({ listing, isOwner }: ListingDetailActionsProps) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loadingChat, setLoadingChat] = useState(false);
-  const [chatError, setChatError] = useState<string | null>(null);
+  const [phone, setPhone] = useState<string | null | undefined>(undefined);
+  const [loadingContact, setLoadingContact] = useState(false);
+  const [contactMessage, setContactMessage] = useState<string | null>(null);
 
   if (isOwner) {
     return (
@@ -42,48 +43,66 @@ export function ListingDetailActions({ listing, isOwner }: ListingDetailActionsP
   }
 
   const handleContactOwner = async () => {
-    setLoadingChat(true);
-    setChatError(null);
+    setLoadingContact(true);
+    setContactMessage(null);
     try {
-      const res = await fetch("/api/conversations", {
+      const res = await fetch(`/api/listings/${listing.id}/contact`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ listing_id: listing.id }),
       });
+
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to start conversation");
+        throw new Error(data.error || "Failed to reveal contact");
       }
 
-      router.push(`/messages/${data.conversation_id}`);
+      setPhone(data.phone ?? null);
+      if (data.phone === null || data.phone === undefined) {
+        setContactMessage("Owner has not shared a number");
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error contacting owner";
-      setChatError(msg);
+      setContactMessage(msg);
     } finally {
-      setLoadingChat(false);
+      setLoadingContact(false);
     }
   };
 
   return (
     <div className="space-y-3">
-      {chatError && (
-        <p className="text-xs text-red-400 text-center">{chatError}</p>
+      {contactMessage && (
+        <p className="text-xs text-amber-400 text-center font-medium bg-amber-500/10 border border-amber-500/20 py-2 px-3 rounded-xl">
+          {contactMessage}
+        </p>
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <button
-          onClick={handleContactOwner}
-          disabled={loadingChat}
-          className="py-3 px-4 rounded-xl border border-slate-700 bg-slate-900 text-slate-200 hover:text-white hover:bg-slate-800 font-semibold text-sm flex items-center justify-center gap-2 transition min-h-[44px] disabled:opacity-50"
-        >
-          {loadingChat ? (
-            <Loader2 className="w-4 h-4 animate-spin text-brand-teal" />
-          ) : (
-            <MessageSquare className="w-4 h-4 text-brand-teal" />
-          )}
-          Contact Owner
-        </button>
+        {phone ? (
+          <a
+            href={`tel:${phone}`}
+            className="py-3 px-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2 transition min-h-[44px]"
+          >
+            <Phone className="w-4 h-4" />
+            <span>{phone}</span>
+          </a>
+        ) : (
+          <button
+            onClick={handleContactOwner}
+            disabled={loadingContact}
+            className="py-3 px-4 rounded-xl border border-slate-700 bg-slate-900 text-slate-200 hover:text-white hover:bg-slate-800 font-semibold text-sm flex items-center justify-center gap-2 transition min-h-[44px] disabled:opacity-50"
+          >
+            {loadingContact ? (
+              <Loader2 className="w-4 h-4 animate-spin text-brand-teal" />
+            ) : (
+              <Phone className="w-4 h-4 text-brand-teal" />
+            )}
+            Contact Owner
+          </button>
+        )}
 
         <button
           onClick={() => setIsModalOpen(true)}

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { createClient, getUserOrThrow } from "@/lib/supabase/server";
 import { createRentalSchema, calculateRentalAmounts } from "@/lib/validation/rentalSchema";
+import { pickupNoteSchema } from "@/lib/validation/contactSchema";
 
 export async function GET(request: Request) {
   try {
@@ -71,6 +72,18 @@ export async function POST(request: Request) {
         { error: "Validation failed", details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
+    }
+
+    let pickup_note: string | null = null;
+    if (body.pickup_note !== undefined && body.pickup_note !== null) {
+      const noteParsed = pickupNoteSchema.safeParse({ pickup_note: body.pickup_note });
+      if (!noteParsed.success) {
+        return NextResponse.json(
+          { error: noteParsed.error.errors[0]?.message || "Invalid pickup point note" },
+          { status: 400 }
+        );
+      }
+      pickup_note = noteParsed.data.pickup_note;
     }
 
     const { listing_id, start_date, end_date, fulfillment, message, payment_method } = parsed.data;
@@ -159,6 +172,7 @@ export async function POST(request: Request) {
         total_amount: pricing.totalAmount,
         fulfillment,
         message: message || null,
+        pickup_note,
         payment_method,
         payment_status: "PENDING",
         status: "REQUESTED",

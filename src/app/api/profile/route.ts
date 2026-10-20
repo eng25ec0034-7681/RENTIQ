@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { updateProfileSchema } from "@/lib/validations";
+import { partnerZonesSchema } from "@/lib/validation/contactSchema";
 import { devStore } from "@/lib/supabase/dev-store";
 
 export async function GET(request: NextRequest) {
@@ -85,6 +86,16 @@ export async function PATCH(request: NextRequest) {
     delete body.roles;
     delete body.id;
 
+    if (body.zones !== undefined) {
+      const zonesValidation = partnerZonesSchema.safeParse(body.zones);
+      if (!zonesValidation.success) {
+        return NextResponse.json(
+          { error: zonesValidation.error.errors[0]?.message || "Invalid partner zones" },
+          { status: 400 }
+        );
+      }
+    }
+
     const validation = updateProfileSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
@@ -134,6 +145,36 @@ export async function PATCH(request: NextRequest) {
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      if (body.zones !== undefined) {
+        const zonesValidation = partnerZonesSchema.safeParse(body.zones);
+        if (zonesValidation.success) {
+          const { data: existingPartner } = await supabase
+            .from("partner_profiles")
+            .select("user_id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (!existingPartner) {
+            return NextResponse.json(
+              { error: "Only approved student partners can set zones" },
+              { status: 403 }
+            );
+          }
+
+          const { error: updatePartnerErr } = await supabase
+            .from("partner_profiles")
+            .update({ zones: zonesValidation.data })
+            .eq("user_id", user.id);
+
+          if (updatePartnerErr) {
+            return NextResponse.json(
+              { error: "Could not save partner zones" },
+              { status: 500 }
+            );
+          }
+        }
       }
 
       return NextResponse.json({ profile: updatedProfile });

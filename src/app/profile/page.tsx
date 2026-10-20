@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Profile, VerificationStatus, UserRole } from "@/types";
 import { validateImageFile } from "@/lib/validations";
+import { PartnerZones } from "@/components/PartnerZones";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -445,6 +446,10 @@ export default function ProfilePage() {
           )}
         </button>
       </form>
+
+      <div className="mt-8">
+        <PartnerZones />
+      </div>
     </div>
   );
 }

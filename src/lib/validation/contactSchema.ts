@@ -35,3 +35,15 @@ export type ListingContactInput = ContactInput;
 
 export const renterPickupNoteSchema = pickupNoteSchema;
 export type RenterPickupNoteInput = PickupNoteInput;
+
+export const zoneStringSchema = z
+  .string()
+  .trim()
+  .min(2, { message: "Each zone must be between 2 and 60 characters" })
+  .max(60, { message: "Each zone must be between 2 and 60 characters" });
+
+export const partnerZonesSchema = z
+  .array(zoneStringSchema)
+  .max(10, { message: "Maximum of 10 zones allowed" });
+
+export type PartnerZonesInput = z.infer<typeof partnerZonesSchema>;
