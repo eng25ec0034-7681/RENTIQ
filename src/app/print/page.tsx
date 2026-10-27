@@ -38,7 +38,7 @@ export default function PrintPage() {
   const [paperSize, setPaperSize] = useState<"A4" | "A3">("A4");
   const [binding, setBinding] = useState<boolean>(false);
   const [stapling, setStapling] = useState<boolean>(false);
-  const [pickupZone, setPickupZone] = useState<PrintZone>(PRINT_ZONES[0]);
+  const [pickupZone, setPickupZone] = useState<string>("");
   const [fulfillment, setFulfillment] = useState<"PICKUP" | "DELIVERY">("PICKUP");
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "UPI">("CASH");
 
@@ -115,7 +115,7 @@ export default function PrintPage() {
     setPaperSize("A4");
     setBinding(false);
     setStapling(false);
-    setPickupZone(PRINT_ZONES[0]);
+    setPickupZone("");
     setFulfillment("PICKUP");
     setPaymentMethod("CASH");
     setError(null);
@@ -196,8 +196,8 @@ export default function PrintPage() {
           paperSize,
           binding,
           stapling,
-          pickup_zone: pickupZone,
-          pickupZone,
+          pickup_zone: pickupZone.trim(),
+          pickupZone: pickupZone.trim(),
           fulfillment,
           payment_method: paymentMethod,
           paymentMethod,
@@ -464,19 +464,23 @@ export default function PrintPage() {
             <label htmlFor="pickup-zone" className="block text-sm font-medium text-slate-300 mb-1">
               Pickup Zone
             </label>
-            <select
+            <input
               id="pickup-zone"
+              type="text"
+              list="zone-suggestions"
               value={pickupZone}
-              onChange={(e) => setPickupZone(e.target.value as PrintZone)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-base text-[16px] focus:outline-none focus:border-[#00E5B0]"
-              style={{ fontSize: "16px" }}
-            >
+              onChange={(e) => setPickupZone(e.target.value)}
+              placeholder="e.g. Library gate"
+              maxLength={60}
+              required
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-base text-[16px] focus:outline-none focus:border-[#00E5B0] min-h-[44px]"
+              style={{ fontSize: "16px", minHeight: "44px" }}
+            />
+            <datalist id="zone-suggestions">
               {PRINT_ZONES.map((zone) => (
-                <option key={zone} value={zone}>
-                  {zone}
-                </option>
+                <option key={zone} value={zone} />
               ))}
-            </select>
+            </datalist>
           </div>
 
           {/* Fulfillment and Payment Method */}

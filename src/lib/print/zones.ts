@@ -9,13 +9,12 @@ export const PRINT_ZONES = [
 export type PrintZone = (typeof PRINT_ZONES)[number];
 
 export function validatePickupZone(zone: unknown): { valid: boolean; error?: string } {
-  if (
-    typeof zone !== "string" ||
-    zone.length < 2 ||
-    zone.length > 60 ||
-    !(PRINT_ZONES as readonly string[]).includes(zone)
-  ) {
-    return { valid: false, error: "Invalid pickup zone. Must be in PRINT_ZONES (2-60 characters)." };
+  if (typeof zone !== "string") {
+    return { valid: false, error: "Invalid pickup zone. Must be a string with 2-60 characters." };
+  }
+  const trimmed = zone.trim();
+  if (trimmed.length < 2 || trimmed.length > 60) {
+    return { valid: false, error: "Invalid pickup zone. Must be 2-60 characters." };
   }
   return { valid: true };
 }

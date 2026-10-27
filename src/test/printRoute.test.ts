@@ -67,8 +67,12 @@ vi.mock("@/lib/supabase/server", () => ({
 
 describe("Print Route Pure Helpers", () => {
   describe("validatePickupZone", () => {
-    it("rejects a pickup zone not in PRINT_ZONES", () => {
-      expect(validatePickupZone("Invalid Campus Gate").valid).toBe(false);
+    it("accepts a 2 to 60 character zone, and rejects a 1 character or 61 character zone", () => {
+      expect(validatePickupZone("AB").valid).toBe(true);
+      expect(validatePickupZone("Custom Gate 4").valid).toBe(true);
+      expect(validatePickupZone("A".repeat(60)).valid).toBe(true);
+      expect(validatePickupZone("A").valid).toBe(false);
+      expect(validatePickupZone("A".repeat(61)).valid).toBe(false);
       expect(validatePickupZone("").valid).toBe(false);
       expect(validatePickupZone(123 as any).valid).toBe(false);
       expect(validatePickupZone(null as any).valid).toBe(false);
@@ -179,17 +183,34 @@ describe("Print Route POST Handler Integration", () => {
     file_path: "user-test-1/my-notes.pdf",
   };
 
-  it("returns 400 when pickup zone is not in PRINT_ZONES", async () => {
-    const req = new Request("http://localhost:3000/api/print", {
+  it("accepts a 2 to 60 character pickup zone and rejects a 1 character or 61 character zone via API", async () => {
+    const reqValid = new Request("http://localhost:3000/api/print", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...validPayload, pickup_zone: "Non Existent Zone" }),
+      body: JSON.stringify({ ...validPayload, pickup_zone: "Custom Gate 4" }),
     });
+    const resValid = await POST(reqValid);
+    expect(resValid.status).toBe(201);
 
-    const res = await POST(req);
-    expect(res.status).toBe(400);
-    const json = await res.json();
-    expect(json.error).toMatch(/pickup zone/i);
+    const reqShort = new Request("http://localhost:3000/api/print", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...validPayload, pickup_zone: "A" }),
+    });
+    const resShort = await POST(reqShort);
+    expect(resShort.status).toBe(400);
+    const jsonShort = await resShort.json();
+    expect(jsonShort.error).toMatch(/pickup zone/i);
+
+    const reqLong = new Request("http://localhost:3000/api/print", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...validPayload, pickup_zone: "A".repeat(61) }),
+    });
+    const resLong = await POST(reqLong);
+    expect(resLong.status).toBe(400);
+    const jsonLong = await resLong.json();
+    expect(jsonLong.error).toMatch(/pickup zone/i);
   });
 
   it("returns 400 when file_path belongs to another user", async () => {

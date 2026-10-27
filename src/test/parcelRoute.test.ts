@@ -108,12 +108,21 @@ describe("Parcel Schema Validation", () => {
     expect(acceptedResult.success).toBe(true);
   });
 
-  it("8.2 A pickup zone not in PRINT_ZONES is rejected", () => {
-    const res = parcelSchema.safeParse({ ...validBase, pickup_zone: "Random Unknown Zone" });
-    expect(res.success).toBe(false);
+  it("8.2 Accepts a 2 to 60 character pickup zone and rejects a 1 character or 61 character zone", () => {
+    const res2Chars = parcelSchema.safeParse({ ...validBase, pickup_zone: "AB" });
+    expect(res2Chars.success).toBe(true);
 
-    const validZoneRes = parcelSchema.safeParse({ ...validBase, pickup_zone: PRINT_ZONES[0] });
-    expect(validZoneRes.success).toBe(true);
+    const resCustom = parcelSchema.safeParse({ ...validBase, pickup_zone: "Random Unknown Zone" });
+    expect(resCustom.success).toBe(true);
+
+    const res60Chars = parcelSchema.safeParse({ ...validBase, pickup_zone: "A".repeat(60) });
+    expect(res60Chars.success).toBe(true);
+
+    const res1Char = parcelSchema.safeParse({ ...validBase, pickup_zone: "A" });
+    expect(res1Char.success).toBe(false);
+
+    const res61Chars = parcelSchema.safeParse({ ...validBase, pickup_zone: "A".repeat(61) });
+    expect(res61Chars.success).toBe(false);
   });
 
   it("8.3 Drop point of 2 characters is rejected", () => {
@@ -173,17 +182,36 @@ describe("Parcel Route POST Integration Handler", () => {
     expect(resAccepted.status).toBe(201);
   });
 
-  it("8.2 Rejects pickup zone not in PRINT_ZONES via API", async () => {
-    const req = new Request("http://localhost:3000/api/parcel", {
+  it("8.2 Accepts a 2 to 60 character pickup zone and rejects a 1 or 61 character zone via API", async () => {
+    const reqValid = new Request("http://localhost:3000/api/parcel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...validPayload, pickup_zone: "Unregistered Gate 9" }),
     });
-    const res = await POST(req);
-    expect(res.status).toBe(400);
-    const json = await res.json();
-    expect(json.error).toBe("Validation failed");
-    expect(json.details?.pickup_zone).toBeDefined();
+    const resValid = await POST(reqValid);
+    expect(resValid.status).toBe(201);
+
+    const req1Char = new Request("http://localhost:3000/api/parcel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...validPayload, pickup_zone: "A" }),
+    });
+    const res1Char = await POST(req1Char);
+    expect(res1Char.status).toBe(400);
+    const json1Char = await res1Char.json();
+    expect(json1Char.error).toBe("Validation failed");
+    expect(json1Char.details?.pickup_zone).toBeDefined();
+
+    const req61Char = new Request("http://localhost:3000/api/parcel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...validPayload, pickup_zone: "A".repeat(61) }),
+    });
+    const res61Char = await POST(req61Char);
+    expect(res61Char.status).toBe(400);
+    const json61Char = await res61Char.json();
+    expect(json61Char.error).toBe("Validation failed");
+    expect(json61Char.details?.pickup_zone).toBeDefined();
   });
 
   it("8.3 Rejects drop point of 2 characters via API", async () => {

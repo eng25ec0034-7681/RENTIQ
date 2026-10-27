@@ -1,13 +1,10 @@
 import { z } from "zod";
-import { PRINT_ZONES } from "@/lib/print/zones";
 import { MAX_PARCEL_WEIGHT_KG } from "@/lib/parcel/parcelRules";
 
 export const PARCEL_PAYMENT_METHODS = ["CASH", "UPI"] as const;
 
 export const parcelSchema = z.object({
-  pickup_zone: z.enum(PRINT_ZONES as unknown as [string, ...string[]], {
-    errorMap: () => ({ message: "Invalid pickup zone. Must be in PRINT_ZONES." }),
-  }),
+  pickup_zone: z.string().trim().min(2).max(60),
   drop_point: z
     .string({ required_error: "Drop point is required" })
     .trim()
