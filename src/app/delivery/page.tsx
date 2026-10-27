@@ -1,10 +1,5 @@
-import { ComingSoon } from "@/components/coming-soon";
+import { redirect } from "next/navigation";
 
 export default function DeliveryPage() {
-  return (
-    <ComingSoon
-      title="Get Campus Delivery"
-      description="Request fast campus pick-up and delivery for your project components, lab records, and packages."
-    />
-  );
+  redirect("/parcel");
 }
