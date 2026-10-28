@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Loader2, RefreshCw, AlertCircle, Clock, MapPin, Package, Printer } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -32,6 +32,152 @@ export default function PartnerPage() {
   const [offers, setOffers] = useState<OfferItem[]>([]);
   const [offersLoading, setOffersLoading] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
+
+  const [alertsEnabled, setAlertsEnabled] = useState(false);
+  const alertsEnabledRef = useRef(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const seenOfferIdsRef = useRef<Set<string>>(new Set());
+  const isInitialLoadRef = useRef(true);
+  const alarmsRef = useRef<Map<string, { intervalId: NodeJS.Timeout; timeoutId: NodeJS.Timeout }>>(
+    new Map()
+  );
+  const activeOscillatorsRef = useRef<Set<OscillatorNode>>(new Set());
+
+  const [workingOfferId, setWorkingOfferId] = useState<string | null>(null);
+  const [workingAction, setWorkingAction] = useState<"accept" | "reject" | null>(null);
+  const [offerErrors, setOfferErrors] = useState<Record<string, string>>({});
+
+  const playBeep = useCallback(() => {
+    try {
+      const ctx = audioContextRef.current;
+      if (!ctx || ctx.state === "closed") return;
+      if (typeof ctx.resume === "function" && ctx.state === "suspended") {
+        ctx.resume();
+      }
+      if (typeof ctx.createOscillator === "function" && typeof ctx.createGain === "function") {
+        const notes = [
+          { freq: 784, start: ctx.currentTime, duration: 0.12 },
+          { freq: 988, start: ctx.currentTime + 0.13, duration: 0.12 },
+          { freq: 1319, start: ctx.currentTime + 0.26, duration: 0.25 },
+        ];
+
+        notes.forEach(({ freq, start, duration }) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "triangle";
+          if (osc.frequency && typeof osc.frequency.setValueAtTime === "function") {
+            osc.frequency.setValueAtTime(freq, start);
+          } else if (osc.frequency) {
+            osc.frequency.value = freq;
+          }
+
+          const end = start + duration;
+          if (gain.gain && typeof gain.gain.setValueAtTime === "function") {
+            gain.gain.setValueAtTime(0.2, start);
+            if (typeof gain.gain.exponentialRampToValueAtTime === "function") {
+              gain.gain.exponentialRampToValueAtTime(0.0001, end);
+            }
+          }
+
+          osc.connect(gain);
+          if (ctx.destination) {
+            gain.connect(ctx.destination);
+          }
+          if (typeof osc.start === "function") {
+            osc.start(start);
+          }
+          if (typeof osc.stop === "function") {
+            osc.stop(end);
+          }
+
+          activeOscillatorsRef.current.add(osc);
+          osc.onended = () => {
+            activeOscillatorsRef.current.delete(osc);
+          };
+        });
+      }
+
+      if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+        try {
+          navigator.vibrate([100, 50, 100]);
+        } catch {
+          // ignore error if vibrate not permitted or unsupported
+        }
+      }
+    } catch {
+      // AudioContext error handling
+    }
+  }, []);
+
+  const stopAlert = useCallback((id: string) => {
+    const alarm = alarmsRef.current.get(id);
+    if (alarm) {
+      clearInterval(alarm.intervalId);
+      clearTimeout(alarm.timeoutId);
+      alarmsRef.current.delete(id);
+    }
+  }, []);
+
+  const startAlert = useCallback(
+    (id: string) => {
+      stopAlert(id);
+      playBeep();
+      const intervalId = setInterval(() => {
+        playBeep();
+      }, 1000);
+      const timeoutId = setTimeout(() => {
+        stopAlert(id);
+      }, 60000);
+      alarmsRef.current.set(id, { intervalId, timeoutId });
+    },
+    [playBeep, stopAlert]
+  );
+
+  useEffect(() => {
+    return () => {
+      alarmsRef.current.forEach((alarm) => {
+        clearInterval(alarm.intervalId);
+        clearTimeout(alarm.timeoutId);
+      });
+      alarmsRef.current.clear();
+
+      activeOscillatorsRef.current.forEach((osc) => {
+        try {
+          if (typeof osc.stop === "function") osc.stop();
+          if (typeof osc.disconnect === "function") osc.disconnect();
+        } catch {}
+      });
+      activeOscillatorsRef.current.clear();
+
+      if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+        try {
+          if (typeof audioContextRef.current.close === "function") {
+            audioContextRef.current.close();
+          }
+        } catch {}
+      }
+    };
+  }, []);
+
+  const handleEnableAlerts = () => {
+    try {
+      const AudioContextClass =
+        typeof window !== "undefined"
+          ? window.AudioContext || (window as any).webkitAudioContext
+          : null;
+      if (AudioContextClass) {
+        const ctx = new AudioContextClass();
+        if (typeof ctx.resume === "function" && ctx.state === "suspended") {
+          ctx.resume();
+        }
+        audioContextRef.current = ctx;
+      }
+    } catch {
+      // ignore
+    }
+    setAlertsEnabled(true);
+    alertsEnabledRef.current = true;
+  };
 
   // Load partner profile
   const loadProfile = useCallback(async () => {
@@ -85,29 +231,47 @@ export default function PartnerPage() {
           pickupZone: row.pickup_zone,
           createdAt: row.created_at,
         }));
+
+        if (isInitialLoadRef.current) {
+          items.forEach((item) => seenOfferIdsRef.current.add(item.id));
+          isInitialLoadRef.current = false;
+        } else {
+          items.forEach((item) => {
+            if (!seenOfferIdsRef.current.has(item.id)) {
+              seenOfferIdsRef.current.add(item.id);
+              if (alertsEnabledRef.current) {
+                startAlert(item.id);
+              }
+            }
+          });
+        }
+
         setOffers(items);
       } else {
+        if (isInitialLoadRef.current) {
+          isInitialLoadRef.current = false;
+        }
         setOffers([]);
       }
-    } catch (err: any) {
+    } catch {
       setRefreshError("Failed to refresh offers.");
     } finally {
       setOffersLoading(false);
     }
-  }, []);
+  }, [startAlert]);
 
   // Initial load
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
 
-  // When profile is loaded and approved, load offers & set 30s interval
+  // When profile is loaded and approved, load offers & set 10s interval
   useEffect(() => {
     if (profile) {
       loadOffers();
       const interval = setInterval(() => {
         loadOffers();
-      }, 30000);
+      }, 10000);
       return () => clearInterval(interval);
     }
   }, [profile, loadOffers]);
@@ -136,6 +300,80 @@ export default function PartnerPage() {
       setToggleError(err?.message || "Failed to update duty status.");
     } finally {
       setToggling(false);
+    }
+  };
+
+  const handleAccept = async (offer: OfferItem) => {
+    if (workingOfferId) return;
+    stopAlert(offer.id);
+    setWorkingOfferId(offer.id);
+    setWorkingAction("accept");
+    setOfferErrors((prev) => {
+      const next = { ...prev };
+      delete next[offer.id];
+      return next;
+    });
+
+    try {
+      const fnName = offer.type === "Print" ? "accept_print_job" : "accept_parcel_job";
+      const { error } = await supabase.rpc(fnName, { p_job_id: offer.jobId });
+
+      if (error) {
+        setOfferErrors((prev) => ({
+          ...prev,
+          [offer.id]: error.message || "Failed to accept job",
+        }));
+        await loadOffers();
+      } else {
+        setOffers((prev) => prev.filter((o) => o.id !== offer.id));
+        await loadOffers();
+      }
+    } catch (err: any) {
+      setOfferErrors((prev) => ({
+        ...prev,
+        [offer.id]: err?.message || "Failed to accept job",
+      }));
+      await loadOffers();
+    } finally {
+      setWorkingOfferId(null);
+      setWorkingAction(null);
+    }
+  };
+
+  const handleReject = async (offer: OfferItem) => {
+    if (workingOfferId) return;
+    stopAlert(offer.id);
+    setWorkingOfferId(offer.id);
+    setWorkingAction("reject");
+    setOfferErrors((prev) => {
+      const next = { ...prev };
+      delete next[offer.id];
+      return next;
+    });
+
+    try {
+      const fnName = offer.type === "Print" ? "reject_print_job" : "reject_parcel_job";
+      const { error } = await supabase.rpc(fnName, { p_job_id: offer.jobId });
+
+      if (error) {
+        setOfferErrors((prev) => ({
+          ...prev,
+          [offer.id]: error.message || "Failed to reject job",
+        }));
+        await loadOffers();
+      } else {
+        setOffers((prev) => prev.filter((o) => o.id !== offer.id));
+        await loadOffers();
+      }
+    } catch (err: any) {
+      setOfferErrors((prev) => ({
+        ...prev,
+        [offer.id]: err?.message || "Failed to reject job",
+      }));
+      await loadOffers();
+    } finally {
+      setWorkingOfferId(null);
+      setWorkingAction(null);
     }
   };
 
@@ -265,6 +503,21 @@ export default function PartnerPage() {
 
       {/* Open offers section */}
       <section className="flex-1 flex flex-col">
+        {!alertsEnabled && (
+          <div className="mb-4 bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <p className="text-sm text-slate-300">
+              Tap Enable alerts to hear new offers.
+            </p>
+            <button
+              type="button"
+              onClick={handleEnableAlerts}
+              className="min-h-[44px] px-4 py-2 bg-[#00E5B0] hover:bg-[#00c99a] text-slate-950 text-sm font-semibold rounded-xl shrink-0 transition"
+            >
+              Enable alerts
+            </button>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold text-white">Open Offers</h2>
@@ -309,47 +562,73 @@ export default function PartnerPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {offers.map((offer) => (
-              <div
-                key={offer.id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-2"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {offer.type === "Print" ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                        <Printer className="w-3.5 h-3.5" />
-                        Print
+            {offers.map((offer) => {
+              const isWorking = workingOfferId === offer.id;
+              return (
+                <div
+                  key={offer.id}
+                  className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {offer.type === "Print" ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                          <Printer className="w-3.5 h-3.5" />
+                          Print
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          <Package className="w-3.5 h-3.5" />
+                          Parcel
+                        </span>
+                      )}
+                      <span className="text-xs text-slate-500 font-mono">
+                        #{offer.jobId.slice(0, 8)}
                       </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                        <Package className="w-3.5 h-3.5" />
-                        Parcel
-                      </span>
-                    )}
-                    <span className="text-xs text-slate-500 font-mono">
-                      #{offer.jobId.slice(0, 8)}
+                    </div>
+
+                    <div className="flex items-center gap-1 text-xs text-slate-400">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{formatTime(offer.createdAt)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-1">
+                    <MapPin className="w-4 h-4 text-[#00E5B0] shrink-0" />
+                    <span className="text-sm font-medium text-white truncate">
+                      Pickup zone: <span className="text-slate-300">{offer.pickupZone}</span>
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1 text-xs text-slate-400">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>{formatTime(offer.createdAt)}</span>
+                  <div className="text-[11px] text-slate-500 truncate mt-1">
+                    Job ID: {offer.jobId}
+                  </div>
+
+                  {offerErrors[offer.id] && (
+                    <p className="text-sm text-rose-400 mt-2">{offerErrors[offer.id]}</p>
+                  )}
+
+                  <div className="flex items-center gap-3 mt-3">
+                    <button
+                      type="button"
+                      onClick={() => handleAccept(offer)}
+                      disabled={isWorking}
+                      className="flex-1 min-h-[44px] px-4 py-2.5 bg-[#00E5B0] hover:bg-[#00c99a] text-slate-950 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50"
+                    >
+                      {isWorking && workingAction === "accept" ? "Working..." : "Accept"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleReject(offer)}
+                      disabled={isWorking}
+                      className="flex-1 min-h-[44px] px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50"
+                    >
+                      {isWorking && workingAction === "reject" ? "Working..." : "Reject"}
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2 mt-1">
-                  <MapPin className="w-4 h-4 text-[#00E5B0] shrink-0" />
-                  <span className="text-sm font-medium text-white truncate">
-                    Pickup zone: <span className="text-slate-300">{offer.pickupZone}</span>
-                  </span>
-                </div>
-
-                <div className="text-[11px] text-slate-500 truncate mt-1">
-                  Job ID: {offer.jobId}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
