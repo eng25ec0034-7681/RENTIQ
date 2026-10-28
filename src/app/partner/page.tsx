@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import Link from "next/link";
 import { Loader2, RefreshCw, AlertCircle, Clock, MapPin, Package, Printer } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -540,6 +541,13 @@ export default function PartnerPage() {
             <span>Refresh</span>
           </button>
         </div>
+
+        <Link
+          href="/partner/jobs"
+          className="min-h-[44px] w-full mb-4 flex items-center justify-center text-base font-semibold bg-slate-900 border border-[#00E5B0]/50 hover:border-[#00E5B0] text-[#00E5B0] rounded-xl transition"
+        >
+          My active jobs
+        </Link>
 
         {refreshError && (
           <p className="text-sm text-rose-400 mb-3">{refreshError}</p>
