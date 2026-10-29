@@ -69,7 +69,79 @@ export default function ServiceOrdersPage() {
 
   const [codes, setCodes] = useState<Record<string, string>>({});
   const [cardErrors, setCardErrors] = useState<Record<string, string | null>>({});
+  const [cancellingIds, setCancellingIds] = useState<Record<string, boolean>>({});
+  const [confirmingIds, setConfirmingIds] = useState<Record<string, boolean>>({});
+  const confirmTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
   const fetchingRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    return () => {
+      Object.values(confirmTimersRef.current).forEach((t) => clearTimeout(t));
+    };
+  }, []);
+
+  const handleCancel = async (order: ServiceOrder) => {
+    const orderId = order.order_id;
+    if (!confirmingIds[orderId]) {
+      setConfirmingIds((prev) => ({ ...prev, [orderId]: true }));
+      if (confirmTimersRef.current[orderId]) {
+        clearTimeout(confirmTimersRef.current[orderId]);
+      }
+      confirmTimersRef.current[orderId] = setTimeout(() => {
+        setConfirmingIds((prev) => {
+          const next = { ...prev };
+          delete next[orderId];
+          return next;
+        });
+      }, 5000);
+      return;
+    }
+
+    if (confirmTimersRef.current[orderId]) {
+      clearTimeout(confirmTimersRef.current[orderId]);
+      delete confirmTimersRef.current[orderId];
+    }
+    setConfirmingIds((prev) => {
+      const next = { ...prev };
+      delete next[orderId];
+      return next;
+    });
+
+    setCancellingIds((prev) => ({ ...prev, [orderId]: true }));
+    setCardErrors((prev) => ({ ...prev, [orderId]: null }));
+
+    try {
+      const rpcName =
+        order.kind === "PRINT"
+          ? "cancel_my_print_job"
+          : "cancel_my_parcel_job";
+      const { error } = await supabase.rpc(rpcName, {
+        p_order_id: orderId,
+      });
+
+      if (error) {
+        setCardErrors((prev) => ({
+          ...prev,
+          [orderId]: error.message || "This order can no longer be cancelled",
+        }));
+        await loadOrders();
+      } else {
+        await loadOrders();
+      }
+    } catch (err: any) {
+      setCardErrors((prev) => ({
+        ...prev,
+        [orderId]: err?.message || "This order can no longer be cancelled",
+      }));
+      await loadOrders();
+    } finally {
+      setCancellingIds((prev) => {
+        const next = { ...prev };
+        delete next[orderId];
+        return next;
+      });
+    }
+  };
 
   const loadOrders = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
@@ -222,6 +294,11 @@ export default function ServiceOrdersPage() {
               order.job_status !== "COMPLETED" &&
               order.job_status !== "CANCELLED" &&
               order.job_status !== "NO_PARTNER_FOUND";
+            const canCancel =
+              order.job_status === "SEARCHING_PARTNER" ||
+              order.job_status === null;
+            const isCancelling = !!cancellingIds[order.order_id];
+            const isConfirming = !!confirmingIds[order.order_id];
 
             return (
               <div
@@ -291,6 +368,22 @@ export default function ServiceOrdersPage() {
                       </div>
                     )}
                   </div>
+                )}
+
+                {/* Cancel Button */}
+                {canCancel && (
+                  <button
+                    type="button"
+                    onClick={() => handleCancel(order)}
+                    disabled={isCancelling}
+                    className="min-h-[44px] w-full text-base font-medium rounded-xl border border-rose-500/40 text-rose-300 hover:border-rose-500/60 bg-rose-500/10 hover:bg-rose-500/20 transition disabled:opacity-50 flex items-center justify-center mt-1"
+                  >
+                    {isCancelling
+                      ? "Cancelling..."
+                      : isConfirming
+                      ? "Tap again to confirm"
+                      : "Cancel order"}
+                  </button>
                 )}
 
                 {/* Card Error Display */}
