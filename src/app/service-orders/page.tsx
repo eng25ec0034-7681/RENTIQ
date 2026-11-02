@@ -66,6 +66,7 @@ export default function ServiceOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
+  const [statusMessages, setStatusMessages] = useState<string[]>([]);
 
   const [codes, setCodes] = useState<Record<string, string>>({});
   const [codeFetchErrors, setCodeFetchErrors] = useState<Record<string, boolean>>({});
@@ -74,6 +75,8 @@ export default function ServiceOrdersPage() {
   const [confirmingIds, setConfirmingIds] = useState<Record<string, boolean>>({});
   const confirmTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
   const fetchingRef = useRef<Set<string>>(new Set());
+  const lastKnownStatusRef = useRef<Record<string, string | null>>({});
+  const isFirstLoadRef = useRef(true);
 
   useEffect(() => {
     return () => {
@@ -156,7 +159,38 @@ export default function ServiceOrdersPage() {
         return;
       }
       if (data && Array.isArray(data)) {
-        setOrders(data as ServiceOrder[]);
+        const fetchedOrders = data as ServiceOrder[];
+        setOrders(fetchedOrders);
+
+        if (isFirstLoadRef.current) {
+          isFirstLoadRef.current = false;
+          fetchedOrders.forEach((order) => {
+            lastKnownStatusRef.current[order.order_id] = order.job_status;
+          });
+        } else {
+          const newMessages: string[] = [];
+          fetchedOrders.forEach((order) => {
+            if (
+              order.order_id in lastKnownStatusRef.current &&
+              lastKnownStatusRef.current[order.order_id] !== order.job_status
+            ) {
+              const plainWords = getPlainWordsStatus(
+                order.job_status,
+                order.kind
+              );
+              const kindLabel =
+                order.kind === "PRINT" ? "Print" : "Parcel";
+              newMessages.push(
+                `Update: ${plainWords} for your ${kindLabel} order.`
+              );
+            }
+            lastKnownStatusRef.current[order.order_id] = order.job_status;
+          });
+
+          if (newMessages.length > 0) {
+            setStatusMessages((prev) => [...prev, ...newMessages].slice(-3));
+          }
+        }
       } else {
         setOrders([]);
       }
@@ -270,6 +304,28 @@ export default function ServiceOrdersPage() {
           <span>Refresh</span>
         </button>
       </header>
+
+      {statusMessages.length > 0 && (
+        <div className="mb-6 bg-green-500/10 border border-green-500/20 rounded-xl p-4 flex flex-col gap-3">
+          {statusMessages.map((msg, idx) => (
+            <div
+              key={`${msg}-${idx}`}
+              className="flex items-center justify-between gap-3 text-base text-green-300"
+            >
+              <span className="text-base">{msg}</span>
+              <button
+                type="button"
+                onClick={() =>
+                  setStatusMessages((prev) => prev.filter((_, i) => i !== idx))
+                }
+                className="min-h-[44px] px-3 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-200 rounded-lg text-base font-medium transition shrink-0 flex items-center justify-center"
+              >
+                Dismiss
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {pageError && (
         <div className="mb-6 bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 flex items-start gap-3">
