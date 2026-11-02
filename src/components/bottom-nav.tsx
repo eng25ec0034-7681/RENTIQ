@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Plus, ShoppingBag, User } from "lucide-react";
+import { Home, Search, Plus, ShoppingBag, User, Package } from "lucide-react";
 import { ActionSheet } from "./action-sheet";
 
 export function BottomNav() {
@@ -21,6 +21,7 @@ export function BottomNav() {
     { label: "Search", href: "/search", icon: Search },
     { label: "Action", href: "#action", icon: Plus, isAction: true },
     { label: "Orders", href: "/orders", icon: ShoppingBag },
+    { label: "My Services", href: "/service-orders", icon: Package },
     { label: "Profile", href: "/profile", icon: User },
   ];
 
