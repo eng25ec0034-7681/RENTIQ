@@ -68,6 +68,7 @@ export default function ServiceOrdersPage() {
   const [pageError, setPageError] = useState<string | null>(null);
 
   const [codes, setCodes] = useState<Record<string, string>>({});
+  const [codeFetchErrors, setCodeFetchErrors] = useState<Record<string, boolean>>({});
   const [cardErrors, setCardErrors] = useState<Record<string, string | null>>({});
   const [cancellingIds, setCancellingIds] = useState<Record<string, boolean>>({});
   const [confirmingIds, setConfirmingIds] = useState<Record<string, boolean>>({});
@@ -189,6 +190,10 @@ export default function ServiceOrdersPage() {
         !fetchingRef.current.has(order.order_id)
       ) {
         fetchingRef.current.add(order.order_id);
+        setCodeFetchErrors((prev) => ({
+          ...prev,
+          [order.order_id]: false,
+        }));
         try {
           const { data, error } = await supabase.rpc("get_my_handover_code", {
             p_job_kind: order.kind,
@@ -196,6 +201,11 @@ export default function ServiceOrdersPage() {
           });
 
           if (error) {
+            fetchingRef.current.delete(order.order_id);
+            setCodeFetchErrors((prev) => ({
+              ...prev,
+              [order.order_id]: true,
+            }));
             setCardErrors((prev) => ({
               ...prev,
               [order.order_id]: error.message || "Failed to load handover code.",
@@ -205,8 +215,19 @@ export default function ServiceOrdersPage() {
               ...prev,
               [order.order_id]: data,
             }));
+          } else {
+            fetchingRef.current.delete(order.order_id);
+            setCodeFetchErrors((prev) => ({
+              ...prev,
+              [order.order_id]: true,
+            }));
           }
         } catch (err: any) {
+          fetchingRef.current.delete(order.order_id);
+          setCodeFetchErrors((prev) => ({
+            ...prev,
+            [order.order_id]: true,
+          }));
           setCardErrors((prev) => ({
             ...prev,
             [order.order_id]: err?.message || "Failed to load handover code.",
@@ -360,6 +381,10 @@ export default function ServiceOrdersPage() {
                     {codes[order.order_id] ? (
                       <div className="text-3xl font-mono font-bold tracking-[0.25em] text-[#00E5B0]">
                         {codes[order.order_id]}
+                      </div>
+                    ) : codeFetchErrors[order.order_id] ? (
+                      <div className="flex items-center justify-center py-1 text-slate-400 text-base">
+                        <span>Code not available yet. Tap Refresh.</span>
                       </div>
                     ) : (
                       <div className="flex items-center justify-center gap-2 py-1 text-slate-400 text-base">
