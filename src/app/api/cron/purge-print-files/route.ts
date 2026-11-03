@@ -3,8 +3,9 @@ import { createClient } from "@supabase/supabase-js";
 
 // Vercel Cron route — runs server-side only, protected by CRON_SECRET
 export async function GET(request: Request) {
+  const cronSecret = process.env.CRON_SECRET;
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -21,22 +22,16 @@ export async function GET(request: Request) {
   }
 
   const rows = (data as Array<{ file_path?: string | null }> | null) ?? [];
-  const paths: string[] = [];
-  for (const row of rows) {
-    if (typeof row === "string" && row.length > 0) {
-      paths.push(row);
-    } else if (
-      row &&
-      typeof row === "object" &&
-      typeof row.file_path === "string" &&
-      row.file_path.length > 0
-    ) {
-      paths.push(row.file_path);
-    }
+  if (rows.length === 0) {
+    return NextResponse.json({ removed: 0, errors: 0 });
   }
 
+  const paths = rows
+    .map((row) => row?.file_path)
+    .filter((path): path is string => typeof path === "string" && path.length > 0);
+
   if (paths.length === 0) {
-    return NextResponse.json({ removed: 0 });
+    return NextResponse.json({ removed: 0, errors: 0 });
   }
 
   const CHUNK_SIZE = 100;
@@ -54,15 +49,10 @@ export async function GET(request: Request) {
       continue;
     }
 
-    const { error: updateError } = await supabase
+    await supabase
       .from("print_orders")
       .update({ file_path: null })
       .in("file_path", chunk);
-
-    if (updateError) {
-      errors++;
-      continue;
-    }
 
     removed += chunk.length;
   }
