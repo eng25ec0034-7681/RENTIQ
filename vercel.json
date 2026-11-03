@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/expire-rentals",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/purge-print-files",
+      "schedule": "0 1 * * *"
     }
   ]
 }
