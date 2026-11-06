@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,9 +129,32 @@ export default function SignupPage() {
             </div>
           </div>
 
+          {/* Terms checkbox */}
+          <label className="flex items-start gap-3 cursor-pointer mt-2">
+            <input
+              type="checkbox"
+              required
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="mt-0.5 w-4 h-4 shrink-0 accent-brand-teal cursor-pointer"
+            />
+            <span className="text-xs text-slate-400 leading-relaxed">
+              I have read and agree to the{" "}
+              <Link
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-brand-teal font-semibold hover:underline"
+              >
+                Terms
+              </Link>{" "}
+              and Privacy Policy.
+            </span>
+          </label>
+
           <button
             type="submit"
-            disabled={loading || success}
+            disabled={loading || success || !agreedToTerms}
             className="w-full py-3.5 px-4 bg-brand-teal text-slate-950 font-bold rounded-xl shadow-lg shadow-brand-teal/20 hover:bg-brand-teal-light transition duration-150 flex items-center justify-center gap-2 min-h-[44px] disabled:opacity-50 mt-6"
           >
             {loading ? (
