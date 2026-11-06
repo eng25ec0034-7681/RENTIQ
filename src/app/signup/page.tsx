@@ -148,7 +148,7 @@ export default function SignupPage() {
               >
                 Terms
               </Link>{" "}
-              and Privacy Policy.
+              .
             </span>
           </label>
 
