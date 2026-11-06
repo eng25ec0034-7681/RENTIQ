@@ -31,6 +31,11 @@ export function BottomNav() {
         aria-label="Bottom Navigation"
         className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t border-slate-800 backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
       >
+        <div className="max-w-md mx-auto px-4 text-center pb-1">
+          <Link href="/terms" className="text-[10px] text-slate-600 hover:text-slate-400 transition-colors">
+            Terms
+          </Link>
+        </div>
         <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-around">
           {navItems.map((item) => {
             const Icon = item.icon;
