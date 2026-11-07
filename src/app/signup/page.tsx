@@ -148,6 +148,15 @@ export default function SignupPage() {
               >
                 Terms
               </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-brand-teal font-semibold hover:underline"
+              >
+                Privacy Policy
+              </Link>
               .
             </span>
           </label>
