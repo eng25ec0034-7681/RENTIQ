@@ -16,6 +16,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    if (body?.agreedToTerms !== true) {
+      return NextResponse.json(
+        { error: "You must agree to the Terms to create an account." },
+        { status: 400 }
+      );
+    }
     const validation = signupSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
