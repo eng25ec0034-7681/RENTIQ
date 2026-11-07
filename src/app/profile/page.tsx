@@ -24,10 +24,14 @@ import {
   ShoppingBag,
   MessageSquare,
   Bell,
+  ChevronRight,
 } from "lucide-react";
 import { Profile, VerificationStatus, UserRole } from "@/types";
 import { validateImageFile } from "@/lib/validations";
 import { PartnerZones } from "@/components/PartnerZones";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -41,6 +45,8 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [hasPartnerProfile, setHasPartnerProfile] = useState(false);
+  const [hasAdminRole, setHasAdminRole] = useState(false);
 
   // Editable fields
   const [name, setName] = useState("");
@@ -48,6 +54,42 @@ export default function ProfilePage() {
   const [department, setDepartment] = useState("");
   const [year, setYear] = useState("");
   const [bio, setBio] = useState("");
+
+  const checkPartnerAndAdmin = async (userId?: string) => {
+    try {
+      let uid = userId;
+      if (!uid) {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        uid = user?.id;
+      }
+      if (!uid) return;
+
+      const [partnerRes, adminRes] = await Promise.all([
+        supabase
+          .from("partner_profiles")
+          .select("user_id")
+          .eq("user_id", uid)
+          .maybeSingle(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", uid)
+          .in("role", ["admin", "super_admin"])
+          .maybeSingle(),
+      ]);
+
+      if (partnerRes.data) {
+        setHasPartnerProfile(true);
+      }
+      if (adminRes.data) {
+        setHasAdminRole(true);
+      }
+    } catch {
+      // Safe fallback
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -72,6 +114,9 @@ export default function ProfilePage() {
         setDepartment(data.profile.department || "");
         setYear(data.profile.year || "");
         setBio(data.profile.bio || "");
+        if (data.profile.id) {
+          checkPartnerAndAdmin(data.profile.id);
+        }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error loading profile";
@@ -83,6 +128,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchProfile();
+    checkPartnerAndAdmin();
   }, []);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -449,6 +495,215 @@ export default function ProfilePage() {
 
       <div className="mt-8">
         <PartnerZones />
+      </div>
+
+      {/* Navigation Section */}
+      <div className="mt-8 space-y-6">
+        {/* My services */}
+        <section>
+          <h3 className="text-sm font-semibold uppercase text-slate-400 tracking-wider mb-3 px-1">
+            My services
+          </h3>
+          <div className="space-y-2">
+            <Link
+              href="/service-orders"
+              className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
+            >
+              <div className="flex flex-col text-left">
+                <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
+                  Service orders
+                </span>
+                <span className="text-sm text-slate-400 mt-0.5">
+                  Track print and parcel orders
+                </span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
+            </Link>
+
+            <Link
+              href="/orders"
+              className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
+            >
+              <div className="flex flex-col text-left">
+                <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
+                  My rentals
+                </span>
+                <span className="text-sm text-slate-400 mt-0.5">
+                  Items you rent or lend
+                </span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
+            </Link>
+
+            <Link
+              href="/print"
+              className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
+            >
+              <div className="flex flex-col text-left">
+                <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
+                  Print document
+                </span>
+                <span className="text-sm text-slate-400 mt-0.5">
+                  Upload and print a file
+                </span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
+            </Link>
+
+            <Link
+              href="/parcel"
+              className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
+            >
+              <div className="flex flex-col text-left">
+                <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
+                  Send a parcel
+                </span>
+                <span className="text-sm text-slate-400 mt-0.5">
+                  Pick up and deliver
+                </span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
+            </Link>
+          </div>
+        </section>
+
+        {/* Partner */}
+        {hasPartnerProfile && (
+          <section>
+            <h3 className="text-sm font-semibold uppercase text-slate-400 tracking-wider mb-3 px-1">
+              Partner
+            </h3>
+            <div className="space-y-2">
+              <Link
+                href="/partner"
+                className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
+              >
+                <div className="flex flex-col text-left">
+                  <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
+                    Partner dashboard
+                  </span>
+                  <span className="text-sm text-slate-400 mt-0.5">
+                    Offers, alerts and active jobs
+                  </span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
+              </Link>
+
+              <Link
+                href="/partner/earnings"
+                className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
+              >
+                <div className="flex flex-col text-left">
+                  <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
+                    Partner earnings
+                  </span>
+                  <span className="text-sm text-slate-400 mt-0.5">
+                    Today and this week
+                  </span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
+              </Link>
+
+              <Link
+                href="/partner/payout"
+                className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
+              >
+                <div className="flex flex-col text-left">
+                  <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
+                    Payout details
+                  </span>
+                  <span className="text-sm text-slate-400 mt-0.5">
+                    Bank details for payments
+                  </span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {/* Admin */}
+        {hasAdminRole && (
+          <section>
+            <h3 className="text-sm font-semibold uppercase text-slate-400 tracking-wider mb-3 px-1">
+              Admin
+            </h3>
+            <div className="space-y-2">
+              <Link
+                href="/admin/partners"
+                className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
+              >
+                <div className="flex flex-col text-left">
+                  <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
+                    Partner approvals
+                  </span>
+                  <span className="text-sm text-slate-400 mt-0.5">
+                    Approve or pause partners
+                  </span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
+              </Link>
+
+              <Link
+                href="/admin/earnings"
+                className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
+              >
+                <div className="flex flex-col text-left">
+                  <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
+                    Platform earnings
+                  </span>
+                  <span className="text-sm text-slate-400 mt-0.5">
+                    Fees and totals by day
+                  </span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {/* Legal */}
+        <section>
+          <h3 className="text-sm font-semibold uppercase text-slate-400 tracking-wider mb-3 px-1">
+            Legal
+          </h3>
+          <div className="space-y-2">
+            <Link
+              href="/terms"
+              className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
+            >
+              <div className="flex flex-col text-left">
+                <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
+                  Terms of use
+                </span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
+            </Link>
+
+            <Link
+              href="/privacy"
+              className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
+            >
+              <div className="flex flex-col text-left">
+                <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
+                  Privacy policy
+                </span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
+            </Link>
+          </div>
+        </section>
+      </div>
+
+      {/* Sign Out Button */}
+      <div className="mt-8 mb-6">
+        <button
+          onClick={handleLogout}
+          className="w-full min-h-[44px] flex items-center justify-center gap-2 px-4 py-3 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 text-base font-semibold rounded-xl transition"
+        >
+          <LogOut className="w-5 h-5" />
+          Sign Out
+        </button>
       </div>
     </div>
   );
