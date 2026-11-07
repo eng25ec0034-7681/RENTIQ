@@ -549,6 +549,13 @@ export default function PartnerPage() {
           My active jobs
         </Link>
 
+        <Link
+          href="/partner/earnings"
+          className="min-h-[44px] w-full mb-4 flex items-center justify-center text-base font-semibold bg-slate-900 border border-[#00E5B0]/50 hover:border-[#00E5B0] text-[#00E5B0] rounded-xl transition"
+        >
+          My earnings
+        </Link>
+
         {refreshError && (
           <p className="text-sm text-rose-400 mb-3">{refreshError}</p>
         )}
