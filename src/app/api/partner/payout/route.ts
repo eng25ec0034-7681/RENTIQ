@@ -163,6 +163,9 @@ export async function POST(request: Request) {
     .update({
       razorpay_account_id: razorpayAccountId,
       razorpay_account_status: razorpayAccountStatus,
+      ...(razorpayAccountStatus !== "rejected" && razorpayAccountStatus !== "suspended"
+        ? { is_approved: true }
+        : {}),
     })
     .eq("user_id", user.id);
 
