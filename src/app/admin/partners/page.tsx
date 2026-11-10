@@ -172,21 +172,13 @@ export default function AdminPartnersPage() {
         )}
 
         <div className="pt-2">
-          {partner.is_approved ? (
+          {partner.is_approved && (
             <button
               onClick={() => handleToggleApproval(partner.user_id, false)}
               disabled={isSaving}
               className="w-full min-h-[44px] h-[44px] px-4 rounded-xl bg-amber-600/20 border border-amber-500/30 text-amber-300 hover:bg-amber-600/30 text-base font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSaving ? "Saving..." : "Pause"}
-            </button>
-          ) : (
-            <button
-              onClick={() => handleToggleApproval(partner.user_id, true)}
-              disabled={isSaving}
-              className="w-full min-h-[44px] h-[44px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-base font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isSaving ? "Saving..." : "Approve"}
             </button>
           )}
         </div>
@@ -224,7 +216,7 @@ export default function AdminPartnersPage() {
       {/* Waiting for approval section */}
       <section className="mb-8">
         <h2 className="text-xl font-bold text-white mb-4">
-          Waiting for approval ({waitingPartners.length})
+          Payout pending ({waitingPartners.length})
         </h2>
         {waitingPartners.length === 0 ? (
           <p className="text-base text-slate-400 bg-slate-900/50 border border-slate-800/80 rounded-2xl p-5">

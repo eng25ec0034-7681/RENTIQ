@@ -472,7 +472,7 @@ export default function PartnerPage() {
                 ? profile.is_online
                   ? "Available to receive delivery offers"
                   : "Offline – turn on to receive offers"
-                : "Awaiting account approval"}
+                : "Complete payout details to go online"}
             </span>
           </div>
 
