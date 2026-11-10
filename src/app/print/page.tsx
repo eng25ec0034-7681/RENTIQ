@@ -41,6 +41,7 @@ export default function PrintPage() {
   const [pickupZone, setPickupZone] = useState<string>("");
   const [fulfillment, setFulfillment] = useState<"PICKUP" | "DELIVERY">("PICKUP");
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "UPI">("CASH");
+  const [contactPhone, setContactPhone] = useState("");
 
   // Auth & Pricing Settings
   const [userId, setUserId] = useState<string | null>(null);
@@ -59,6 +60,14 @@ export default function PrintPage() {
         const { data: authData } = await supabase.auth.getUser();
         if (authData?.user?.id && isMounted) {
           setUserId(authData.user.id);
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("phone")
+            .eq("id", authData.user.id)
+            .maybeSingle();
+          if (profile?.phone && isMounted) {
+            setContactPhone(profile.phone);
+          }
         }
       } catch {
         // Fallback handled on submit
@@ -201,6 +210,7 @@ export default function PrintPage() {
           fulfillment,
           payment_method: paymentMethod,
           paymentMethod,
+          contact_phone: contactPhone,
           file_path: storagePath,
         }),
       });
@@ -541,6 +551,23 @@ export default function PrintPage() {
                 <span className="text-[#00E5B0]">₹{previewTotals.total_amount}</span>
               </div>
             </div>
+          </div>
+
+          {/* Contact Phone */}
+          <div className="mb-4">
+            <label htmlFor="contactPhone" className="block text-sm font-semibold text-slate-300 mb-1.5">
+              Mobile number for this delivery
+            </label>
+            <input
+              id="contactPhone"
+              type="tel"
+              inputMode="numeric"
+              maxLength={10}
+              value={contactPhone}
+              onChange={(e) => setContactPhone(e.target.value.replace(/\D/g, ""))}
+              placeholder="10-digit mobile number"
+              className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-white text-base placeholder-slate-400 focus:outline-none focus:border-brand-teal min-h-[44px]"
+            />
           </div>
 
           {/* Submit Button */}

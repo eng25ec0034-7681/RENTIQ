@@ -173,6 +173,17 @@ export async function POST(request: Request) {
     );
   }
 
+  if (/^[6-9][0-9]{9}$/.test(mobile)) {
+    const { error: profilePhoneError } = await adminClient
+      .from("profiles")
+      .update({ phone: mobile })
+      .eq("id", user.id);
+
+    if (profilePhoneError) {
+      console.warn("Failed to update profile phone:", profilePhoneError);
+    }
+  }
+
   return NextResponse.json(
     { ok: true, status: razorpayAccountStatus },
     { status: 200 }

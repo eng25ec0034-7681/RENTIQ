@@ -11,6 +11,7 @@ import {
   Printer,
   ExternalLink,
   ArrowLeft,
+  Phone,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -28,6 +29,8 @@ interface ActiveJob {
   payment_status: string;
   total_amount: number;
   created_at: string;
+  customer_name: string | null;
+  customer_phone: string | null;
 }
 
 interface StepInfo {
@@ -361,6 +364,26 @@ export default function PartnerActiveJobsPage() {
                     </div>
                     <div className="text-base text-slate-300">Payment: {job.payment_status}</div>
                   </div>
+
+                  {(job.customer_name || job.customer_phone) && (
+                    <div className="flex items-center justify-between pl-7 pt-1">
+                      <div className="text-base text-slate-300">
+                        Customer:{" "}
+                        <span className="font-medium text-white">
+                          {job.customer_name ?? "Student"}
+                        </span>
+                      </div>
+                      {job.customer_phone && (
+                        <a
+                          href={`tel:${job.customer_phone}`}
+                          className="inline-flex items-center gap-1.5 min-h-[44px] px-3 text-brand-teal text-base font-semibold"
+                        >
+                          <Phone className="w-4 h-4" />
+                          Call
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Print Job Open File */}

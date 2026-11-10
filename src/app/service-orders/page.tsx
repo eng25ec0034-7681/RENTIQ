@@ -9,6 +9,7 @@ import {
   MapPin,
   Package,
   Printer,
+  Phone,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -69,6 +70,9 @@ export default function ServiceOrdersPage() {
   const [statusMessages, setStatusMessages] = useState<string[]>([]);
 
   const [codes, setCodes] = useState<Record<string, string>>({});
+  const [partnerContacts, setPartnerContacts] = useState<
+    Record<string, { name: string | null; phone: string | null }>
+  >({});
   const [codeFetchErrors, setCodeFetchErrors] = useState<Record<string, boolean>>({});
   const [cardErrors, setCardErrors] = useState<Record<string, string | null>>({});
   const [cancellingIds, setCancellingIds] = useState<Record<string, boolean>>({});
@@ -209,6 +213,29 @@ export default function ServiceOrdersPage() {
     }, 15000);
     return () => clearInterval(interval);
   }, [loadOrders]);
+
+  useEffect(() => {
+    orders.forEach(async (order) => {
+      try {
+        const { data, error } = await supabase.rpc("get_order_partner_contact", {
+          p_kind: order.kind,
+          p_order_id: order.order_id,
+        });
+        if (!error && data && data[0]) {
+          const row = data[0];
+          setPartnerContacts((prev) => ({
+            ...prev,
+            [order.order_id]: {
+              name: row.partner_name ?? null,
+              phone: row.partner_phone ?? null,
+            },
+          }));
+        }
+      } catch (err) {
+        console.warn("Failed to load partner contact for order:", order.order_id, err);
+      }
+    });
+  }, [orders]);
 
   useEffect(() => {
     orders.forEach(async (order) => {
@@ -426,6 +453,26 @@ export default function ServiceOrdersPage() {
                       Payment: {order.payment_status}
                     </div>
                   </div>
+
+                  {partnerContacts[order.order_id] && (
+                    <div className="flex items-center justify-between pl-7 pt-1 text-base text-slate-300">
+                      <div>
+                        Partner:{" "}
+                        <span className="font-medium text-white">
+                          {partnerContacts[order.order_id].name}
+                        </span>
+                      </div>
+                      {partnerContacts[order.order_id].phone && (
+                        <a
+                          href={`tel:${partnerContacts[order.order_id].phone}`}
+                          className="min-h-[44px] inline-flex items-center gap-1.5 text-brand-teal hover:underline font-medium"
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span>{partnerContacts[order.order_id].phone}</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Handover Code */}

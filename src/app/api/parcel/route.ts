@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     weight_kg: body.weight_kg ?? body.weightKg,
     no_banned_items: body.no_banned_items ?? body.noBannedItems,
     payment_method: body.payment_method ?? body.paymentMethod,
+    contact_phone: body.contact_phone ?? body.contactPhone,
   };
 
   const parsed = parcelSchema.safeParse(normalizedBody);
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
     weight_kg: parsed.data.weight_kg,
     no_banned_items: parsed.data.no_banned_items,
     payment_method: parsed.data.payment_method,
+    contact_phone: parsed.data.contact_phone,
   };
 
   const supabase = await createClient();

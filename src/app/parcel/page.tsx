@@ -29,6 +29,7 @@ export default function ParcelPage() {
   const [weightKg, setWeightKg] = useState<string>("1");
   const [noBannedItems, setNoBannedItems] = useState<boolean>(false);
   const [paymentMethod, setPaymentMethod] = useState<(typeof PARCEL_PAYMENT_METHODS)[number]>("CASH");
+  const [contactPhone, setContactPhone] = useState("");
 
   // Pricing state loaded from platform_settings
   const [parcelFee, setParcelFee] = useState<number | null>(null);
@@ -43,6 +44,22 @@ export default function ParcelPage() {
     let isMounted = true;
 
     async function loadFees() {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user?.id && isMounted) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("phone")
+            .eq("id", authData.user.id)
+            .maybeSingle();
+          if (profile?.phone && isMounted) {
+            setContactPhone(profile.phone);
+          }
+        }
+      } catch {
+        // Fallback
+      }
+
       try {
         const { data, error: feeError } = await supabase
           .from("platform_settings")
@@ -94,6 +111,7 @@ export default function ParcelPage() {
       weight_kg: parsedWeight,
       no_banned_items: noBannedItems,
       payment_method: paymentMethod,
+      contact_phone: contactPhone,
     });
 
     if (!validation.success) {
@@ -117,6 +135,7 @@ export default function ParcelPage() {
           weight_kg: validation.data.weight_kg,
           no_banned_items: validation.data.no_banned_items,
           payment_method: validation.data.payment_method,
+          contact_phone: contactPhone,
         }),
       });
 
@@ -380,6 +399,23 @@ export default function ParcelPage() {
             <p className="text-xs text-slate-400 mt-2 border-t border-slate-800/60 pt-2">
               Parcels are carried by students. Do not send anything you are not allowed to carry.
             </p>
+          </div>
+
+          {/* Contact Phone */}
+          <div className="mb-4">
+            <label htmlFor="contactPhone" className="block text-sm font-semibold text-slate-300 mb-1.5">
+              Mobile number for this delivery
+            </label>
+            <input
+              id="contactPhone"
+              type="tel"
+              inputMode="numeric"
+              maxLength={10}
+              value={contactPhone}
+              onChange={(e) => setContactPhone(e.target.value.replace(/\D/g, ""))}
+              placeholder="10-digit mobile number"
+              className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-white text-base placeholder-slate-400 focus:outline-none focus:border-brand-teal min-h-[44px]"
+            />
           </div>
 
           {/* Submit Button */}

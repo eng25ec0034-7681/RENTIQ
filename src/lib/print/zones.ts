@@ -43,5 +43,6 @@ export function buildPrintInsert(userId: string, input: any) {
     payment_method: input.paymentMethod ?? input.payment_method,
     pickup_zone: input.pickup_zone ?? input.pickupZone,
     file_path: input.file_path ?? input.filePath,
+    contact_phone: input.contact_phone ?? input.contactPhone,
   };
 }

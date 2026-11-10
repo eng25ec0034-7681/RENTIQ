@@ -28,6 +28,7 @@ export const printSchema = z.object({
   paymentMethod: z.enum(PRINT_PAYMENT_METHODS, {
     errorMap: () => ({ message: "Payment method must be CASH or UPI" }),
   }),
+  contact_phone: z.string().regex(/^[6-9][0-9]{9}$/, { message: "Enter a valid 10-digit mobile number" }),
 });
 
 export const printOrderSchema = printSchema;
