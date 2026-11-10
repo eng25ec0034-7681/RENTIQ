@@ -43,14 +43,22 @@ export default async function HomePage() {
 
       {/* Search Bar (UI only) */}
       <div className="mb-6">
-        <div className="relative">
+        <form action="/search" method="get" className="relative">
           <Search className="w-5 h-5 absolute left-4 top-3.5 text-slate-400" />
           <input
             type="text"
+            name="q"
             placeholder="What do you need?"
             className="w-full pl-12 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-white text-base placeholder-slate-400 focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition min-h-[44px] shadow-sm"
           />
-        </div>
+          <button
+            type="submit"
+            aria-label="Search"
+            className="absolute right-3 top-3.5 p-1 text-slate-400 hover:text-white pointer-events-none"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+        </form>
       </div>
 
       {/* Recent Listings */}
