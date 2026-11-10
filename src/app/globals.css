@@ -35,3 +35,131 @@ input, select, textarea {
   background: #1E293B;
   border-radius: 9999px;
 }
+
+
+/* ==========================================================================
+   RENTIQ motion + stickers
+   Append to the end of src/app/globals.css. No dependencies, no JS needed.
+   Everything is opt-in through a class, so nothing moves until you ask it to.
+   ========================================================================== */
+
+/* --- Keyframes ---------------------------------------------------------- */
+
+@keyframes rq-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes rq-pop-in {
+  0%   { opacity: 0; transform: scale(0.94); }
+  60%  { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes rq-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+@keyframes rq-wiggle {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50%      { transform: rotate(2.5deg); }
+}
+
+@keyframes rq-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(0, 229, 176, 0.35); }
+  70%  { box-shadow: 0 0 0 12px rgba(0, 229, 176, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 229, 176, 0); }
+}
+
+@keyframes rq-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes rq-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes rq-toast-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes rq-count-bump {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+
+@keyframes rq-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-4px); }
+  40%      { transform: translateX(4px); }
+  60%      { transform: translateX(-2px); }
+  80%      { transform: translateX(2px); }
+}
+
+/* --- Entrance ----------------------------------------------------------- */
+
+.rq-fade-up { animation: rq-fade-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+.rq-pop-in  { animation: rq-pop-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* A new offer arriving: pop, then ring twice so it catches the eye. */
+.rq-new-offer {
+  animation:
+    rq-pop-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both,
+    rq-pulse-ring 1.8s ease-out 0.38s 2;
+}
+
+/* Stagger children of a list. Works up to 6 items, then stops delaying. */
+.rq-stagger > * { animation: rq-fade-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.rq-stagger > *:nth-child(1) { animation-delay: 0s; }
+.rq-stagger > *:nth-child(2) { animation-delay: 0.05s; }
+.rq-stagger > *:nth-child(3) { animation-delay: 0.1s; }
+.rq-stagger > *:nth-child(4) { animation-delay: 0.15s; }
+.rq-stagger > *:nth-child(5) { animation-delay: 0.2s; }
+.rq-stagger > *:nth-child(6) { animation-delay: 0.25s; }
+
+/* --- Idle life ---------------------------------------------------------- */
+
+.rq-float  { animation: rq-float 3.2s ease-in-out infinite; }
+.rq-wiggle { animation: rq-wiggle 2.4s ease-in-out infinite; }
+
+/* --- Interaction -------------------------------------------------------- */
+
+.rq-press { transition: transform 0.12s ease, opacity 0.12s ease; }
+.rq-press:active { transform: scale(0.97); opacity: 0.92; }
+
+.rq-bump { animation: rq-count-bump 0.45s ease-out; }
+
+.rq-shake { animation: rq-shake 0.4s ease-in-out; }
+
+.rq-toast { animation: rq-toast-in 0.28s ease-out both; }
+
+/* --- Loading ------------------------------------------------------------ */
+
+.rq-skeleton {
+  background: linear-gradient(90deg, #0f172a 25%, #1e293b 37%, #0f172a 63%);
+  background-size: 200% 100%;
+  animation: rq-shimmer 1.4s linear infinite;
+}
+
+/* --- Success tick ------------------------------------------------------- */
+
+.rq-check path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: rq-draw 0.5s ease-out 0.1s forwards;
+}
+
+/* --- Respect the user's motion setting ---------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="rq-"] {
+    animation: none !important;
+    transition: none !important;
+  }
+  .rq-check path { stroke-dashoffset: 0; }
+}

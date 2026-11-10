@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Loader2, RefreshCw, AlertCircle, Clock, MapPin, Package, Printer } from "lucide-react";
+import Sticker from "@/components/Sticker";
 import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
@@ -589,7 +590,7 @@ export default function PartnerPage() {
           </div>
         ) : offers.length === 0 ? (
           <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-8 text-center">
-            <Package className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+            <Sticker kind="empty-box" className="w-24 h-24 mx-auto mb-2" />
             <p className="text-base font-medium text-slate-300">
               No open offers right now.
             </p>
@@ -650,7 +651,7 @@ export default function PartnerPage() {
                       type="button"
                       onClick={() => handleAccept(offer)}
                       disabled={isWorking}
-                      className="flex-1 min-h-[44px] px-4 py-2.5 bg-[#00E5B0] hover:bg-[#00c99a] text-slate-950 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50"
+                      className="flex-1 min-h-[44px] px-4 py-2.5 bg-[#00E5B0] hover:bg-[#00c99a] text-slate-950 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50 rq-press"
                     >
                       {isWorking && workingAction === "accept" ? "Working..." : "Accept"}
                     </button>
@@ -658,7 +659,7 @@ export default function PartnerPage() {
                       type="button"
                       onClick={() => handleReject(offer)}
                       disabled={isWorking}
-                      className="flex-1 min-h-[44px] px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50"
+                      className="flex-1 min-h-[44px] px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50 rq-press"
                     >
                       {isWorking && workingAction === "reject" ? "Working..." : "Reject"}
                     </button>

@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Loader2, Search, SlidersHorizontal, X } from "lucide-react";
+import Sticker from "@/components/Sticker";
 import ListingCard from "@/components/ListingCard";
 import { createClient } from "@/lib/supabase/client";
 import { listingCategories, listingConditions } from "@/lib/validation/listingSchema";
@@ -309,7 +310,7 @@ function SearchInner() {
         </div>
       ) : results.length === 0 && !error ? (
         <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-8 text-center">
-          <Search className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+          <Sticker kind="search" className="w-20 h-20 mx-auto mb-3" />
           <p className="text-base font-medium text-slate-300">Nothing matched that search.</p>
           <p className="text-sm text-slate-500 mt-1">
             Try a shorter word, or clear the filters to see everything.
