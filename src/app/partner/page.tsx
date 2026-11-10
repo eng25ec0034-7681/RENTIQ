@@ -43,6 +43,7 @@ export default function PartnerPage() {
     new Map()
   );
   const activeOscillatorsRef = useRef<Set<OscillatorNode>>(new Set());
+  const offersInFlightRef = useRef(false);
 
   const [workingOfferId, setWorkingOfferId] = useState<string | null>(null);
   const [workingAction, setWorkingAction] = useState<"accept" | "reject" | null>(null);
@@ -213,8 +214,11 @@ export default function PartnerPage() {
   }, []);
 
   // Load offers (Print and Parcel where status is OFFERED)
-  const loadOffers = useCallback(async () => {
-    setOffersLoading(true);
+  const loadOffers = useCallback(async (silent = false) => {
+    if (offersInFlightRef.current) return;
+    offersInFlightRef.current = true;
+
+    if (!silent) setOffersLoading(true);
     setRefreshError(null);
     try {
       const { data, error } = await supabase.rpc("list_partner_offers");
@@ -257,7 +261,8 @@ export default function PartnerPage() {
     } catch {
       setRefreshError("Failed to refresh offers.");
     } finally {
-      setOffersLoading(false);
+      offersInFlightRef.current = false;
+      if (!silent) setOffersLoading(false);
     }
   }, [startAlert]);
 
@@ -266,15 +271,26 @@ export default function PartnerPage() {
     loadProfile();
   }, [loadProfile]);
 
-  // When profile is loaded and approved, load offers & set 10s interval
+  // Poll offers every 3 seconds while the tab is visible
   useEffect(() => {
-    if (profile) {
-      loadOffers();
-      const interval = setInterval(() => {
-        loadOffers();
-      }, 10000);
-      return () => clearInterval(interval);
-    }
+    if (!profile) return;
+
+    loadOffers();
+
+    const tick = () => {
+      if (document.visibilityState === "visible") loadOffers(true);
+    };
+    const interval = setInterval(tick, 3000);
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") loadOffers(true);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [profile, loadOffers]);
 
   // Duty toggle change handler
@@ -536,7 +552,7 @@ export default function PartnerPage() {
           </div>
           <button
             type="button"
-            onClick={loadOffers}
+            onClick={() => loadOffers()}
             disabled={offersLoading}
             className="min-h-[44px] px-3 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 text-sm font-medium rounded-xl flex items-center gap-2 transition disabled:opacity-50"
             aria-label="Refresh offers"
