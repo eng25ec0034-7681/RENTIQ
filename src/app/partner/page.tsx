@@ -26,6 +26,7 @@ interface OfferItem {
   colour?: boolean;
   copies?: number;
   deliveryFee?: number;
+  pickupZone?: string;
 }
 
 export default function PartnerPage() {
@@ -53,6 +54,7 @@ export default function PartnerPage() {
   const [workingOfferId, setWorkingOfferId] = useState<string | null>(null);
   const [workingAction, setWorkingAction] = useState<"accept" | "reject" | null>(null);
   const [offerErrors, setOfferErrors] = useState<Record<string, string>>({});
+  const [dismissedAlertFor, setDismissedAlertFor] = useState<string[]>([]);
 
   const playBeep = useCallback(() => {
     try {
@@ -66,6 +68,7 @@ export default function PartnerPage() {
           { freq: 784, start: ctx.currentTime, duration: 0.12 },
           { freq: 988, start: ctx.currentTime + 0.13, duration: 0.12 },
           { freq: 1319, start: ctx.currentTime + 0.26, duration: 0.25 },
+          { freq: 1568, start: ctx.currentTime + 0.42, duration: 0.2 },
         ];
 
         notes.forEach(({ freq, start, duration }) => {
@@ -80,7 +83,7 @@ export default function PartnerPage() {
 
           const end = start + duration;
           if (gain.gain && typeof gain.gain.setValueAtTime === "function") {
-            gain.gain.setValueAtTime(0.2, start);
+            gain.gain.setValueAtTime(0.5, start);
             if (typeof gain.gain.exponentialRampToValueAtTime === "function") {
               gain.gain.exponentialRampToValueAtTime(0.0001, end);
             }
@@ -106,7 +109,7 @@ export default function PartnerPage() {
 
       if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
         try {
-          navigator.vibrate([100, 50, 100]);
+          navigator.vibrate([300, 150, 300, 150, 600]);
         } catch {
           // ignore error if vibrate not permitted or unsupported
         }
@@ -131,7 +134,7 @@ export default function PartnerPage() {
       playBeep();
       const intervalId = setInterval(() => {
         playBeep();
-      }, 1000);
+      }, 1800);
       const timeoutId = setTimeout(() => {
         stopAlert(id);
       }, 60000);
@@ -243,6 +246,7 @@ export default function PartnerPage() {
           colour: row.colour ?? undefined,
           copies: row.copies ?? undefined,
           deliveryFee: row.delivery_fee ?? undefined,
+          pickupZone: row.pickup_zone ?? row.pickupZone ?? "Campus",
         }));
 
         if (isInitialLoadRef.current) {
@@ -300,6 +304,31 @@ export default function PartnerPage() {
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [profile, loadOffers]);
+
+  useEffect(() => {
+    const unlock = () => {
+      const AudioContextClass =
+        typeof window !== "undefined"
+          ? window.AudioContext || (window as any).webkitAudioContext
+          : null;
+      if (AudioContextClass && !audioContextRef.current) {
+        audioContextRef.current = new AudioContextClass();
+      }
+      if (audioContextRef.current?.state === "suspended") {
+        audioContextRef.current.resume();
+      }
+      alertsEnabledRef.current = true;
+      setAlertsEnabled(true);
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, []);
 
   // Duty toggle change handler
   const handleToggleDuty = async (nextOnline: boolean) => {
@@ -656,6 +685,41 @@ export default function PartnerPage() {
           </div>
         )}
       </section>
+
+      {offers.length > 0 && !dismissedAlertFor.includes(offers[0].id) && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 rq-slide-up">
+          <div className="w-full max-w-md bg-slate-900 border border-brand-teal/40 rounded-3xl p-5 shadow-2xl">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-brand-teal mb-1">
+              New order  ringing
+            </p>
+            <h2 className="text-xl font-bold text-white">
+              {offers[0].type} pickup at {offers[0].pickupZone}
+            </h2>
+            <p className="text-sm text-slate-400 mt-1">
+              Accept within a minute or it goes to another partner.
+            </p>
+            <div className="flex gap-3 mt-5">
+              <button
+                type="button"
+                onClick={() => handleAccept(offers[0])}
+                className="flex-1 min-h-[52px] rounded-xl bg-brand-teal text-slate-950 text-base font-bold rq-press rq-cta"
+              >
+                Accept
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDismissedAlertFor((prev) => [...prev, offers[0].id]);
+                  handleReject(offers[0]);
+                }}
+                className="min-h-[52px] px-5 rounded-xl border border-slate-700 text-slate-200 text-base font-semibold rq-press"
+              >
+                Skip
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
