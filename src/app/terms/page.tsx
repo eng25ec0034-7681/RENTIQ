@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "Terms of Use - RENTIQ",
-  description: "Rules for using the RENTIQ app.",
+  title: "Terms of Use - RENTIT",
+  description: "Rules for using the RENTIT app.",
 };
 
 export default function TermsPage() {
@@ -23,7 +23,7 @@ export default function TermsPage() {
       {/* Page heading */}
       <header className="mb-8">
         <h1 className="text-2xl font-black text-white tracking-tight">
-          RENTIQ: Rules for Using the App
+          RENTIT: Rules for Using the App
         </h1>
       </header>
 
@@ -32,7 +32,7 @@ export default function TermsPage() {
         {/* 1 */}
         <section>
           <h2 className="text-base font-bold text-white mb-3">
-            1. Who can use RENTIQ
+            1. Who can use RENTIT
           </h2>
           <ul className="space-y-2 pl-4">
             <li className="relative before:content-['-'] before:absolute before:-left-4 before:text-slate-500">
@@ -63,7 +63,7 @@ export default function TermsPage() {
               Send a parcel from a pickup point to a drop point, carried by a student Partner.
             </li>
             <li className="relative before:content-['-'] before:absolute before:-left-4 before:text-slate-500">
-              RENTIQ only connects you. The students who rent, print or carry are the ones providing the service.
+              RENTIT only connects you. The students who rent, print or carry are the ones providing the service.
             </li>
           </ul>
         </section>
@@ -168,7 +168,7 @@ export default function TermsPage() {
               The platform fee is shown on every order.
             </li>
             <li className="relative before:content-['-'] before:absolute before:-left-4 before:text-slate-500">
-              You pay online through a secure payment provider. RENTIQ does not store your card or bank details.
+              You pay online through a secure payment provider. RENTIT does not store your card or bank details.
             </li>
             <li className="relative before:content-['-'] before:absolute before:-left-4 before:text-slate-500">
               Your order is confirmed only after payment succeeds.
@@ -230,14 +230,14 @@ export default function TermsPage() {
         {/* 11 */}
         <section>
           <h2 className="text-base font-bold text-white mb-3">
-            11. What RENTIQ is not responsible for
+            11. What RENTIT is not responsible for
           </h2>
           <ul className="space-y-2 pl-4">
             <li className="relative before:content-['-'] before:absolute before:-left-4 before:text-slate-500">
               We do not guarantee that a rental, print or delivery will happen or be perfect.
             </li>
             <li className="relative before:content-['-'] before:absolute before:-left-4 before:text-slate-500">
-              RENTIQ is not responsible for losses that come from what users do to each other.
+              RENTIT is not responsible for losses that come from what users do to each other.
             </li>
             <li className="relative before:content-['-'] before:absolute before:-left-4 before:text-slate-500">
               Our total responsibility is limited to the platform fee on the order in question.
@@ -267,7 +267,7 @@ export default function TermsPage() {
           </h2>
           <ul className="space-y-2 pl-4">
             <li className="relative before:content-['-'] before:absolute before:-left-4 before:text-slate-500">
-              We may update these rules. You will see the new version in the app. If you keep using RENTIQ after an update, you accept the new rules.
+              We may update these rules. You will see the new version in the app. If you keep using RENTIT after an update, you accept the new rules.
             </li>
           </ul>
         </section>

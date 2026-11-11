@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Search, KeyRound, Printer, Truck, PlusCircle, BookOpen, Calculator, Trophy, Cpu, FolderGit2, Calendar, PackageCheck } from "lucide-react";
 import { IPhoneInstallBanner } from "@/components/iphone-install-banner";
+import WelcomeGreeting from "@/components/welcome-greeting";
 import ListingCard from "@/components/ListingCard";
 import { createServerClient } from "@/lib/supabase/server";
 
@@ -14,6 +15,20 @@ export default async function HomePage() {
     .eq('status', 'ACTIVE')
     .order('created_at', { ascending: false })
     .limit(8);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let welcomeName = "";
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", user.id)
+      .maybeSingle();
+    welcomeName = profile?.name ?? user.email?.split("@")[0] ?? "";
+  }
 
   const primaryActions = [
     { title: "Rent Something", href: "/rent", icon: KeyRound, color: "bg-teal-500/10 text-brand-teal border-teal-500/30" },
@@ -40,6 +55,7 @@ export default async function HomePage() {
       </header>
 
       <IPhoneInstallBanner />
+      {user && <WelcomeGreeting name={welcomeName} />}
 
       {/* Search Bar (UI only) */}
       <div className="mb-6">

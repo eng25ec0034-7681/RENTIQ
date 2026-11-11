@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "Privacy Policy - RENTIQ",
-  description: "Privacy Policy for the RENTIQ app.",
+  title: "Privacy Policy - RENTIT",
+  description: "Privacy Policy for the RENTIT app.",
 };
 
 export default function PrivacyPage() {
@@ -23,7 +23,7 @@ export default function PrivacyPage() {
       {/* Page heading */}
       <header className="mb-8">
         <h1 className="text-2xl font-black text-white tracking-tight">
-          RENTIQ: Privacy Policy
+          RENTIT: Privacy Policy
         </h1>
       </header>
 

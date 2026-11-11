@@ -52,7 +52,7 @@ export default function SignupPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-white tracking-tight">Create Account</h1>
-          <p className="text-sm text-brand-teal font-medium mt-1">Join RENTIQ Community</p>
+          <p className="text-sm text-brand-teal font-medium mt-1">Join RENTIT Community</p>
           <p className="text-xs text-slate-400 mt-2">Rent items, print documents & get campus delivery</p>
         </div>
 

@@ -48,7 +48,7 @@ export default function LoginPage() {
           <div className="w-16 h-16 rounded-2xl bg-brand-teal/10 border border-brand-teal/30 flex items-center justify-center mx-auto mb-4 text-brand-teal shadow-lg shadow-brand-teal/10">
             <KeyRound className="w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">RENTIQ</h1>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">RENTIT</h1>
           <p className="text-sm text-brand-teal font-medium mt-1">Rent Smart. Spend Less.</p>
           <p className="text-xs text-slate-400 mt-2">Log in to your student account</p>
         </div>
