@@ -17,11 +17,18 @@ export const printSchema = z.object({
     .max(100, { message: "Copies cannot exceed 100" }),
   colour: z.boolean().default(false),
   doubleSided: z.boolean().default(false),
+  bindingType: z.enum(["NONE", "STAPLE", "SPIRAL", "SOFT"]).default("NONE"),
+  stationery: z
+    .array(
+      z.object({
+        code: z.string().min(1),
+        qty: z.number().int().min(1).max(20),
+      })
+    )
+    .default([]),
   paperSize: z.enum(PAPER_SIZES, {
     errorMap: () => ({ message: "Paper size must be A4 or A3" }),
   }).default("A4"),
-  binding: z.boolean().default(false),
-  stapling: z.boolean().default(false),
   fulfillment: z.enum(PRINT_FULFILLMENT_TYPES, {
     errorMap: () => ({ message: "Fulfillment must be PICKUP or DELIVERY" }),
   }).default("PICKUP"),

@@ -1,14 +1,130 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Minus, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { calculatePrintOrderTotal } from "@/lib/print/pricing";
+import {
+  calculatePrintTotals,
+  BindingType,
+  PaperSize,
+  StationeryPick,
+  PrintTotals,
+  CatalogueEntry,
+} from "@/lib/print/pricing";
 
-interface PrintOrderTotals {
-  order_id?: string;
-  printing_cost: number;
-  delivery_fee: number;
-  total_amount: number;
+export interface StationeryItem {
+  code: string;
+  name: string;
+  price: number;
+  category: string;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  WRITING: "Writing",
+  PAPER: "Paper",
+  FILES: "Files & covers",
+  DESK: "Desk tools",
+  BINDING: "Binding extras",
+  OTHER: "Other",
+};
+
+const CATEGORY_ORDER = ["WRITING", "PAPER", "FILES", "DESK", "BINDING", "OTHER"];
+
+export function StationeryPicker({
+  items,
+  value,
+  onChange,
+}: {
+  items: StationeryItem[];
+  value: Record<string, number>;
+  onChange: (next: Record<string, number>) => void;
+}) {
+  const setQty = (code: string, qty: number) => {
+    const next = { ...value };
+    if (qty <= 0) delete next[code];
+    else next[code] = Math.min(qty, 20);
+    onChange(next);
+  };
+
+  const grouped = CATEGORY_ORDER.map((cat) => ({
+    cat,
+    label: CATEGORY_LABELS[cat] ?? cat,
+    list: items.filter((i) => i.category === cat),
+  })).filter((g) => g.list.length > 0);
+
+  const count = Object.values(value).reduce((a, b) => a + b, 0);
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex items-baseline justify-between">
+        <p className="text-sm font-semibold text-slate-300">
+          Stationery <span className="text-slate-500">(optional)</span>
+        </p>
+        {count > 0 && (
+          <span className="text-xs font-semibold text-brand-teal">
+            {count} item{count === 1 ? "" : "s"} added
+          </span>
+        )}
+      </div>
+
+      {grouped.map((group) => (
+        <div key={group.cat}>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+            {group.label}
+          </p>
+          <div className="flex flex-col gap-2">
+            {group.list.map((item) => {
+              const qty = value[item.code] ?? 0;
+              return (
+                <div
+                  key={item.code}
+                  className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 min-h-[52px] transition rq-stat-row ${
+                    qty > 0 ? "rq-stat-on" : ""
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{item.name}</p>
+                    <p className="text-xs text-slate-400">₹{item.price} each</p>
+                  </div>
+
+                  {qty === 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setQty(item.code, 1)}
+                      aria-label={`Add ${item.name}`}
+                      className="shrink-0 min-h-[36px] px-3 rounded-lg text-sm font-semibold rq-press"
+                    >
+                      Add
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setQty(item.code, qty - 1)}
+                        aria-label={`Remove one ${item.name}`}
+                        className="w-9 h-9 rounded-lg flex items-center justify-center rq-press"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="w-7 text-center text-sm font-bold text-white">{qty}</span>
+                      <button
+                        type="button"
+                        onClick={() => setQty(item.code, qty + 1)}
+                        aria-label={`Add one more ${item.name}`}
+                        className="w-9 h-9 rounded-lg bg-brand-teal text-slate-950 flex items-center justify-center rq-press"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -33,12 +149,16 @@ export default function PrintPage() {
   const [copies, setCopies] = useState<number | "">(1);
   const [colour, setColour] = useState<boolean>(false);
   const [doubleSided, setDoubleSided] = useState<boolean>(false);
-  const [paperSize, setPaperSize] = useState<"A4" | "A3">("A4");
-  const [binding, setBinding] = useState<boolean>(false);
-  const [stapling, setStapling] = useState<boolean>(false);
+  const [paperSize, setPaperSize] = useState<PaperSize>("A4");
+  const [bindingType, setBindingType] = useState<BindingType>("NONE");
+  const [stationery, setStationery] = useState<Record<string, number>>({});
   const [dropPoint, setDropPoint] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "UPI">("CASH");
   const [contactPhone, setContactPhone] = useState("");
+
+  // Catalogue
+  const [catalogue, setCatalogue] = useState<StationeryItem[]>([]);
+  const [catalogueMap, setCatalogueMap] = useState<Record<string, CatalogueEntry>>({});
 
   // Auth & Pricing Settings
   const [userId, setUserId] = useState<string | null>(null);
@@ -46,7 +166,10 @@ export default function PrintPage() {
   // Status State
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
-  const [submittedTotals, setSubmittedTotals] = useState<PrintOrderTotals | null>(null);
+  const [submittedOrder, setSubmittedOrder] = useState<{
+    order_id?: string;
+    totals: PrintTotals;
+  } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -67,6 +190,25 @@ export default function PrintPage() {
         }
       } catch {
         // Fallback handled on submit
+      }
+
+      try {
+        const { data: items } = await supabase
+          .from("stationery_items")
+          .select("code,name,price,category")
+          .eq("is_active", true)
+          .order("sort");
+
+        if (items && isMounted) {
+          setCatalogue(items);
+          const map: Record<string, CatalogueEntry> = {};
+          for (const item of items) {
+            map[item.code] = { name: item.name, price: item.price };
+          }
+          setCatalogueMap(map);
+        }
+      } catch (err) {
+        console.error("Failed to load stationery catalogue", err);
       }
     }
 
@@ -94,19 +236,38 @@ export default function PrintPage() {
   };
 
   const handleReset = () => {
-    setSubmittedTotals(null);
+    setSubmittedOrder(null);
     setFile(null);
     setPages(1);
     setCopies(1);
     setColour(false);
     setDoubleSided(false);
     setPaperSize("A4");
-    setBinding(false);
-    setStapling(false);
+    setBindingType("NONE");
+    setStationery({});
     setDropPoint("");
     setPaymentMethod("CASH");
     setError(null);
   };
+
+  const stationeryPicks: StationeryPick[] = Object.entries(stationery)
+    .filter(([_, qty]) => qty > 0)
+    .map(([code, qty]) => ({ code, qty }));
+
+  // Live preview totals using calculatePrintTotals from @/lib/print/pricing
+  const previewTotals = calculatePrintTotals(
+    {
+      pages: typeof pages === "number" ? pages : 1,
+      copies: typeof copies === "number" ? copies : 1,
+      colour,
+      doubleSided,
+      paperSize,
+      bindingType,
+      fulfillment: "DELIVERY",
+      stationery: stationeryPicks,
+    },
+    catalogueMap
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,8 +348,8 @@ export default function PrintPage() {
           doubleSided,
           paper_size: paperSize,
           paperSize,
-          binding,
-          stapling,
+          bindingType,
+          stationery: stationeryPicks,
           drop_point: trimmedDropPoint,
           dropPoint: trimmedDropPoint,
           payment_method: paymentMethod,
@@ -214,12 +375,24 @@ export default function PrintPage() {
         return;
       }
 
-      // 4. Update submitted totals returned by /api/print
-      setSubmittedTotals({
+      // 4. Update submitted totals using calculatePrintTotals from @/lib/print/pricing
+      const orderTotals = calculatePrintTotals(
+        {
+          pages: pagesNum,
+          copies: copiesNum,
+          colour,
+          doubleSided,
+          paperSize,
+          bindingType,
+          fulfillment: "DELIVERY",
+          stationery: stationeryPicks,
+        },
+        catalogueMap
+      );
+
+      setSubmittedOrder({
         order_id: result.order_id || result.orderId,
-        printing_cost: Number(result.printing_cost ?? 0),
-        delivery_fee: Number(result.delivery_fee ?? 0),
-        total_amount: Number(result.total_amount ?? 0),
+        totals: orderTotals,
       });
     } catch (err: any) {
       setError(err?.message || "An unexpected error occurred. Please try again.");
@@ -227,24 +400,6 @@ export default function PrintPage() {
       setSubmitting(false);
     }
   };
-
-  // Pure function calculation for live preview
-  const previewTotals = calculatePrintOrderTotal(
-    {
-      pages: typeof pages === "number" ? pages : 1,
-      copies: typeof copies === "number" ? copies : 1,
-      colour,
-      doubleSided,
-      paperSize,
-      binding,
-      stapling,
-      fulfillment: "DELIVERY",
-      paymentMethod,
-    },
-    {
-      platform_fee: 0,
-    }
-  );
 
   return (
     <div
@@ -272,32 +427,35 @@ export default function PrintPage() {
         </div>
       )}
 
-      {submittedTotals ? (
+      {submittedOrder ? (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
           <div className="text-center">
             <div className="w-12 h-12 bg-emerald-500/20 text-[#00E5B0] rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
               ✓
             </div>
             <h2 className="text-xl font-bold text-white">Order Placed Successfully</h2>
-            {submittedTotals.order_id && (
-              <p className="text-xs text-slate-400 mt-1">Order ID: {submittedTotals.order_id}</p>
+            {submittedOrder.order_id && (
+              <p className="text-xs text-slate-400 mt-1">Order ID: {submittedOrder.order_id}</p>
             )}
           </div>
 
           <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4">
             <h3 className="text-sm font-semibold text-slate-300 mb-3">Order Totals</h3>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-slate-300">
-                <span>Printing</span>
-                <span>₹{submittedTotals.printing_cost}</span>
-              </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Delivery fee</span>
-                <span>₹{submittedTotals.delivery_fee}</span>
-              </div>
+              {submittedOrder.totals.lines.map((line, idx) => (
+                <div key={idx} className="flex justify-between items-baseline text-slate-300">
+                  <div className="flex flex-col">
+                    <span>{line.label}</span>
+                    {line.detail && (
+                      <span className="text-xs text-slate-400">{line.detail}</span>
+                    )}
+                  </div>
+                  <span className="font-medium text-white">₹{line.amount}</span>
+                </div>
+              ))}
               <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-base">
                 <span>Total</span>
-                <span className="text-[#00E5B0]">₹{submittedTotals.total_amount}</span>
+                <span className="text-[#00E5B0]">₹{submittedOrder.totals.total}</span>
               </div>
             </div>
           </div>
@@ -397,7 +555,7 @@ export default function PrintPage() {
             <select
               id="paper-size"
               value={paperSize}
-              onChange={(e) => setPaperSize(e.target.value as "A4" | "A3")}
+              onChange={(e) => setPaperSize(e.target.value as PaperSize)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-base text-[16px] focus:outline-none focus:border-[#00E5B0]"
               style={{ fontSize: "16px" }}
             >
@@ -406,47 +564,111 @@ export default function PrintPage() {
             </select>
           </div>
 
-          {/* Checkboxes: Colour, Double-Sided, Binding, Stapling */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            <label className="flex items-center gap-3 cursor-pointer select-none text-base text-[16px] text-slate-200">
-              <input
-                type="checkbox"
-                checked={colour}
-                onChange={(e) => setColour(e.target.checked)}
-                className="w-5 h-5 rounded border-slate-700 bg-slate-950 text-[#00E5B0] focus:ring-0 focus:ring-offset-0"
-              />
-              <span>Colour print</span>
+          {/* Four Options Cards */}
+          {/* Card 1: Colour mode */}
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4">
+            <label className="block text-sm font-semibold text-slate-300 mb-2.5">
+              Colour mode
             </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setColour(false)}
+                className={`min-h-[44px] px-3 py-2.5 rounded-xl border text-sm font-medium transition flex flex-col items-center justify-center text-center ${
+                  !colour
+                    ? "border-[#00E5B0] bg-[#00E5B0]/10 text-white font-semibold"
+                    : "border-slate-800 bg-slate-900/50 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                }`}
+              >
+                <span>Black &amp; white</span>
+                <span className="text-xs text-slate-400">₹2/side</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setColour(true)}
+                className={`min-h-[44px] px-3 py-2.5 rounded-xl border text-sm font-medium transition flex flex-col items-center justify-center text-center ${
+                  colour
+                    ? "border-[#00E5B0] bg-[#00E5B0]/10 text-white font-semibold"
+                    : "border-slate-800 bg-slate-900/50 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                }`}
+              >
+                <span>Colour</span>
+                <span className="text-xs text-slate-400">₹10/side</span>
+              </button>
+            </div>
+          </div>
 
-            <label className="flex items-center gap-3 cursor-pointer select-none text-base text-[16px] text-slate-200">
-              <input
-                type="checkbox"
-                checked={doubleSided}
-                onChange={(e) => setDoubleSided(e.target.checked)}
-                className="w-5 h-5 rounded border-slate-700 bg-slate-950 text-[#00E5B0] focus:ring-0 focus:ring-offset-0"
-              />
-              <span>Double-sided</span>
+          {/* Card 2: Sides */}
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4">
+            <label className="block text-sm font-semibold text-slate-300 mb-2.5">
+              Sides
             </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setDoubleSided(false)}
+                className={`min-h-[44px] px-3 py-2.5 rounded-xl border text-sm font-medium transition flex flex-col items-center justify-center text-center ${
+                  !doubleSided
+                    ? "border-[#00E5B0] bg-[#00E5B0]/10 text-white font-semibold"
+                    : "border-slate-800 bg-slate-900/50 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                }`}
+              >
+                <span>Single side</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDoubleSided(true)}
+                className={`min-h-[44px] px-3 py-2.5 rounded-xl border text-sm font-medium transition flex flex-col items-center justify-center text-center ${
+                  doubleSided
+                    ? "border-[#00E5B0] bg-[#00E5B0]/10 text-white font-semibold"
+                    : "border-slate-800 bg-slate-900/50 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                }`}
+              >
+                <span>Front &amp; back</span>
+                <span className="text-xs text-slate-400">₹3/sheet</span>
+              </button>
+            </div>
+          </div>
 
-            <label className="flex items-center gap-3 cursor-pointer select-none text-base text-[16px] text-slate-200">
-              <input
-                type="checkbox"
-                checked={binding}
-                onChange={(e) => setBinding(e.target.checked)}
-                className="w-5 h-5 rounded border-slate-700 bg-slate-950 text-[#00E5B0] focus:ring-0 focus:ring-offset-0"
-              />
-              <span>Binding</span>
+          {/* Card 3: Binding */}
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4">
+            <label className="block text-sm font-semibold text-slate-300 mb-2.5">
+              Binding
             </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {[
+                { value: "NONE" as const, label: "No binding", sub: "" },
+                { value: "STAPLE" as const, label: "Stapled", sub: "₹2" },
+                { value: "SPIRAL" as const, label: "Spiral", sub: "₹40" },
+                { value: "SOFT" as const, label: "Soft", sub: "₹30" },
+              ].map((b) => {
+                const isSelected = bindingType === b.value;
+                return (
+                  <button
+                    key={b.value}
+                    type="button"
+                    onClick={() => setBindingType(b.value)}
+                    className={`min-h-[44px] px-3 py-2 rounded-xl border text-sm font-medium transition flex flex-col items-center justify-center text-center ${
+                      isSelected
+                        ? "border-[#00E5B0] bg-[#00E5B0]/10 text-white font-semibold"
+                        : "border-slate-800 bg-slate-900/50 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                    }`}
+                  >
+                    <span>{b.label}</span>
+                    {b.sub && <span className="text-xs text-slate-400">{b.sub}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-            <label className="flex items-center gap-3 cursor-pointer select-none text-base text-[16px] text-slate-200">
-              <input
-                type="checkbox"
-                checked={stapling}
-                onChange={(e) => setStapling(e.target.checked)}
-                className="w-5 h-5 rounded border-slate-700 bg-slate-950 text-[#00E5B0] focus:ring-0 focus:ring-offset-0"
-              />
-              <span>Stapling</span>
-            </label>
+          {/* Card 4: Stationery */}
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4">
+            <StationeryPicker
+              items={catalogue}
+              value={stationery}
+              onChange={setStationery}
+            />
           </div>
 
           {/* Delivery location */}
@@ -489,17 +711,20 @@ export default function PrintPage() {
           <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4">
             <h3 className="text-sm font-semibold text-slate-300 mb-3">Price Summary</h3>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-slate-300">
-                <span>Printing</span>
-                <span>₹{previewTotals.printing_cost}</span>
-              </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Delivery fee</span>
-                <span>₹{previewTotals.delivery_fee}</span>
-              </div>
+              {previewTotals.lines.map((line, idx) => (
+                <div key={idx} className="flex justify-between items-baseline text-slate-300">
+                  <div className="flex flex-col">
+                    <span>{line.label}</span>
+                    {line.detail && (
+                      <span className="text-xs text-slate-400">{line.detail}</span>
+                    )}
+                  </div>
+                  <span className="font-medium text-white">₹{line.amount}</span>
+                </div>
+              ))}
               <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-base">
                 <span>Total</span>
-                <span className="text-[#00E5B0]">₹{previewTotals.total_amount}</span>
+                <span className="text-[#00E5B0]">₹{previewTotals.total}</span>
               </div>
             </div>
           </div>
@@ -527,7 +752,7 @@ export default function PrintPage() {
             disabled={submitting}
             className="rq-cta w-full min-h-[44px] h-[44px] bg-[#00E5B0] hover:bg-[#00c99a] disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-semibold rounded-xl text-base flex items-center justify-center transition"
           >
-            {submitting ? "Processing..." : `Order Print • ₹${previewTotals.total_amount}`}
+            {submitting ? "Processing..." : `Order Print • ₹${previewTotals.total}`}
           </button>
         </form>
       )}

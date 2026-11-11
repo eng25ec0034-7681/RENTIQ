@@ -3,6 +3,7 @@ import { createClient, getUserOrThrow } from "@/lib/supabase/server";
 import { printSchema } from "@/lib/validation/printSchema";
 import {
   validateFilePath,
+  buildPrintInsert,
 } from "@/lib/print/zones";
 
 export async function POST(request: Request) {
@@ -25,6 +26,8 @@ export async function POST(request: Request) {
     fulfillment: "DELIVERY",
     doubleSided: body.doubleSided ?? body.double_sided,
     paperSize: body.paperSize ?? body.paper_size,
+    bindingType: body.bindingType ?? body.binding_type,
+    stationery: body.stationery,
     paymentMethod: body.paymentMethod ?? body.payment_method,
     contact_phone: body.contact_phone ?? body.contactPhone,
   };
@@ -59,20 +62,13 @@ export async function POST(request: Request) {
   }
 
   const insertPayload = {
-    customer_id: user.id,
-    pages: parsed.data.pages,
-    copies: parsed.data.copies,
-    colour: parsed.data.colour,
-    double_sided: parsed.data.doubleSided,
-    paper_size: parsed.data.paperSize,
-    binding: parsed.data.binding,
-    stapling: parsed.data.stapling,
-    fulfillment: "DELIVERY",
-    payment_method: parsed.data.paymentMethod,
+    ...buildPrintInsert(user.id, {
+      ...parsed.data,
+      filePath,
+    }),
     drop_point: dropPoint,
     pickup_zone: null,
-    file_path: filePath,
-    contact_phone: parsed.data.contact_phone,
+    fulfillment: "DELIVERY",
   };
 
   const supabase = await createClient();
