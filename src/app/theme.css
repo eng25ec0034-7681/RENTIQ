@@ -312,8 +312,6 @@ input[type="checkbox"] {
   accent-color: var(--brand) !important
 }
 
-Add-Content -Path "C:\dev\rentiq\src\app\theme.css" -Value @'
-
 
 label input.peer+div {
   width: 52px !important;
@@ -350,5 +348,3 @@ label input.peer:disabled+div {
 label input.peer:focus-visible+div {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
 }
-
-'@ -Encoding utf8
