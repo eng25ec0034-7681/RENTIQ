@@ -28,7 +28,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
 
   return (
     <div
-      className="cursor-pointer rounded-lg bg-neutral-900 p-2 hover:shadow-md transition-shadow relative group"
+      className="cursor-pointer rounded-2xl bg-slate-900 border border-slate-800 p-2.5 hover:border-slate-700 transition-colors relative group"
       onClick={handleClick}
     >
       {/* Cover photo – fallback to placeholder if missing */}
@@ -53,19 +53,25 @@ export default function ListingCard({ listing }: { listing: Listing }) {
           <FavoriteButton listingId={listing.id} />
         </div>
       </div>
-      <h3 className="mt-2 text-lg font-medium text-white truncate" title={listing.title}>
+      <h3 className="mt-2 text-base font-semibold text-white truncate" title={listing.title}>
         {listing.title}
       </h3>
-      <p className="text-teal-400">₹{listing.price_per_day}/day</p>
+      <div className="flex items-baseline gap-1 mt-0.5">
+        <span className="text-lg font-bold text-white">₹{listing.price_per_day}</span>
+        <span className="text-xs text-slate-400">/day</span>
+        {listing.max_rental_days ? (
+          <span className="text-xs text-slate-500 ml-auto">up to {listing.max_rental_days}d</span>
+        ) : null}
+      </div>
       <div className="flex items-center space-x-2 mt-1">
-        <span className="px-2 py-0.5 rounded bg-teal-600 text-xs text-white">
+        <span className="px-2 py-0.5 rounded-md bg-brand-teal/15 text-brand-teal border border-brand-teal/30 text-[11px] font-semibold capitalize">
           {listing.condition}
         </span>
         {listing.college && (
-          <span className="text-sm text-gray-300">{listing.college}</span>
+          <span className="text-xs text-slate-400">{listing.college}</span>
         )}
         {listing.delivery_available && (
-          <span className="text-xs bg-green-600 text-white rounded px-1">Delivery</span>
+          <span className="text-[11px] bg-slate-800 text-slate-300 border border-slate-700 rounded px-1.5 py-0.5">Delivery</span>
         )}
       </div>
     </div>

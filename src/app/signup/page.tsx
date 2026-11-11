@@ -47,10 +47,10 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-center px-6 py-12">
+    <div className="flex-1 flex flex-col justify-center px-6 py-8">
       <div className="w-full max-w-sm mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="rq-hero text-center mb-6">
           <h1 className="text-3xl font-extrabold text-white tracking-tight">Create Account</h1>
           <p className="text-sm text-brand-teal font-medium mt-1">Join RENTIT Community</p>
           <p className="text-xs text-slate-400 mt-2">Rent items, print documents & get campus delivery</p>
@@ -58,11 +58,11 @@ export default function SignupPage() {
 
         {/* Success Alert */}
         {success && (
-          <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-start gap-3">
+          <div className="mb-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-600 text-sm flex items-start gap-3">
             <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold">Account created successfully!</p>
-              <p className="text-xs text-emerald-300/80">Redirecting to home page...</p>
+              <p className="text-xs text-blue-500/80">Redirecting to home page...</p>
             </div>
           </div>
         )}

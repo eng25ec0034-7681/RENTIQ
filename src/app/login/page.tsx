@@ -41,11 +41,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-center px-6 py-12">
+    <div className="flex-1 flex flex-col justify-center px-6 py-8">
       <div className="w-full max-w-sm mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-brand-teal/10 border border-brand-teal/30 flex items-center justify-center mx-auto mb-4 text-brand-teal shadow-lg shadow-brand-teal/10">
+        <div className="rq-hero text-center mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 text-[#2563EB] shadow-lg shadow-brand-teal/10">
             <KeyRound className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">RENTIT</h1>

@@ -1,19 +1,19 @@
-// src/app/page.tsx - corrected to be a server component
+// src/app/page.tsx — royal blue home with hero search
 import Link from "next/link";
-import { Search, KeyRound, Printer, Truck, PlusCircle, BookOpen, Calculator, Trophy, Cpu, FolderGit2, Calendar, PackageCheck } from "lucide-react";
+import { Search, Printer, Truck, PlusCircle, KeyRound, BookOpen, Calculator, Trophy, Cpu, FolderGit2, Calendar, PackageCheck } from "lucide-react";
 import { IPhoneInstallBanner } from "@/components/iphone-install-banner";
-import WelcomeGreeting from "@/components/welcome-greeting";
 import ListingCard from "@/components/ListingCard";
+import WelcomeGreeting from "@/components/welcome-greeting";
 import { createServerClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
-  // Fetch recent active listings
   const supabase = await createServerClient();
+
   const { data: recentListings } = await supabase
-    .from('listings')
-    .select('*, listing_photos(storage_path, position)')
-    .eq('status', 'ACTIVE')
-    .order('created_at', { ascending: false })
+    .from("listings")
+    .select("*, listing_photos(storage_path, position)")
+    .eq("status", "ACTIVE")
+    .order("created_at", { ascending: false })
     .limit(8);
 
   const {
@@ -30,11 +30,11 @@ export default async function HomePage() {
     welcomeName = profile?.name ?? user.email?.split("@")[0] ?? "";
   }
 
-  const primaryActions = [
-    { title: "Rent Something", href: "/rent", icon: KeyRound, color: "bg-teal-500/10 text-brand-teal border-teal-500/30" },
-    { title: "Print / Xerox", href: "/print", icon: Printer, color: "bg-blue-500/10 text-blue-400 border-blue-500/30" },
-    { title: "Get Delivery", href: "/delivery", icon: Truck, color: "bg-purple-500/10 text-purple-400 border-purple-500/30" },
-    { title: "Give Something to Rent", href: "/give", icon: PlusCircle, color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" },
+  const quickActions = [
+    { title: "Print", href: "/print", icon: Printer, tile: "rq-tile-blue" },
+    { title: "Parcel", href: "/parcel", icon: Truck, tile: "rq-tile-orange" },
+    { title: "List", href: "/give", icon: PlusCircle, tile: "rq-tile-blue" },
+    { title: "Partner", href: "/partner", icon: KeyRound, tile: "rq-tile-orange" },
   ];
 
   const categories = [
@@ -48,86 +48,117 @@ export default async function HomePage() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col px-4 py-6">
-      <header className="mb-6 text-center">
-        <h1 className="text-3xl font-black text-white tracking-tight">RENTIT</h1>
-        <p className="text-sm font-semibold text-brand-teal mt-0.5">Rent Smart. Spend Less.</p>
-      </header>
+    <div className="flex-1 flex flex-col pb-6">
+      <section className="rq-hero">
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-lg bg-white text-[#2563EB] text-[11px] font-extrabold flex items-center justify-center">
+            R
+          </span>
+          <span className="text-sm font-extrabold tracking-tight">RENTIT</span>
+          <span className="ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/20">
+            Student
+          </span>
+        </div>
 
-      <IPhoneInstallBanner />
-      {user && <WelcomeGreeting name={welcomeName} />}
+        <h1 className="text-2xl font-extrabold leading-tight tracking-tight mt-4">
+          Find it. Rent it. Save it.
+        </h1>
+        <p className="rq-hero-sub text-sm mt-1.5">
+          Everything students need, all in one place.
+        </p>
 
-      {/* Search Bar (UI only) */}
-      <div className="mb-6">
-        <form action="/search" method="get" className="relative">
-          <Search className="w-5 h-5 absolute left-4 top-3.5 text-slate-400" />
+        <form action="/search" method="get" className="rq-hero-search relative mt-4">
+          <Search className="w-5 h-5 absolute left-4 top-3.5" />
           <input
             type="text"
             name="q"
-            placeholder="What do you need?"
-            className="w-full pl-12 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-white text-base placeholder-slate-400 focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition min-h-[44px] shadow-sm"
+            placeholder="Search products to rent..."
+            className="w-full pl-12 pr-4 py-3 text-base min-h-[48px] focus:outline-none"
           />
           <button
             type="submit"
             aria-label="Search"
-            className="absolute right-3 top-3.5 p-1 text-slate-400 hover:text-white pointer-events-none"
+            className="absolute right-3 top-3.5 p-1 pointer-events-none"
           >
-            <Search className="w-5 h-5" />
+            <Search className="w-5 h-5 opacity-0" />
           </button>
         </form>
-      </div>
-
-      {/* Recent Listings */}
-      <section className="mb-8">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Recent Listings</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {recentListings?.map((l: any) => (
-            <ListingCard key={l.id} listing={l} />
-          ))}
-        </div>
       </section>
 
-      {/* Four Primary Buttons Grid */}
-      <section className="mb-8">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Quick Services</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {primaryActions.map((action) => {
-            const Icon = action.icon;
-            return (
+      <div className="px-4 -mt-3">
+        <IPhoneInstallBanner />
+        {user && <WelcomeGreeting name={welcomeName} />}
+
+        <section className="mb-6 mt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-white">Recommended for you</h2>
+            <Link href="/rent" className="text-sm font-bold text-brand-teal">
+              See all
+            </Link>
+          </div>
+
+          {recentListings && recentListings.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recentListings.map((l: any) => (
+                <ListingCard key={l.id} listing={l} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center">
+              <p className="text-sm font-medium text-slate-300">Nothing listed yet.</p>
               <Link
-                key={action.title}
-                href={action.href}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-brand-teal/50 hover:bg-slate-800 transition text-center group min-h-[100px] shadow-md"
+                href="/give"
+                className="mt-3 inline-flex items-center justify-center px-4 py-2.5 bg-brand-teal text-slate-950 text-sm font-bold rounded-xl min-h-[44px]"
               >
-                <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center mb-2 group-hover:scale-105 transition-transform ${action.color}`}>
-                  <Icon className="w-6 h-6" />
-                </div>
-                <span className="text-xs font-semibold text-slate-200 group-hover:text-white leading-tight">{action.title}</span>
+                List the first item
               </Link>
-            );
-          })}
-        </div>
-      </section>
+            </div>
+          )}
+        </section>
 
-      {/* Categories Horizontal Scroll Row */}
-      <section className="mb-6">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Explore Categories</h2>
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-4 px-4">
-          {categories.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <Link key={cat.name} href={`/search?category=${cat.name.toLowerCase()}`}>
-                <div className="block flex flex-col items-center justify-center min-w-[80px] p-3 rounded-2xl bg-slate-900 border border-slate-800 shrink-0 text-center hover:border-slate-700 transition">
-                  <div className="w-10 h-10 rounded-xl bg-slate-800/80 text-brand-teal flex items-center justify-center mb-1.5">
+        <section className="mb-6">
+          <div className="grid grid-cols-4 gap-2">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <Link
+                  key={action.title}
+                  href={action.href}
+                  className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl bg-slate-900 border border-slate-800 min-h-[78px]"
+                >
+                  <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${action.tile}`}>
+                    <Icon className="w-4 h-4" />
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-300">{action.title}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="mb-6">
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+            Explore categories
+          </h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <Link
+                  key={cat.name}
+                  href={`/search?category=${cat.name.toLowerCase()}`}
+                  className="flex flex-col items-center justify-center min-w-[80px] p-3 rounded-2xl bg-slate-900 border border-slate-800 shrink-0 text-center"
+                >
+                  <span className="w-10 h-10 rounded-xl bg-brand-teal/15 text-brand-teal flex items-center justify-center mb-1.5">
                     <Icon className="w-5 h-5" />
-                  </div>
+                  </span>
                   <span className="text-[11px] font-medium text-slate-300">{cat.name}</span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

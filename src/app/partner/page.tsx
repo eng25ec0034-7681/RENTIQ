@@ -303,7 +303,7 @@ export default function PartnerPage() {
 
   // Duty toggle change handler
   const handleToggleDuty = async (nextOnline: boolean) => {
-    if (!profile || !profile.is_approved || toggling) return;
+    if (!profile || toggling) return;
 
     setToggling(true);
     setToggleError(null);
@@ -471,11 +471,9 @@ export default function PartnerPage() {
           <div>
             <span className="text-base font-semibold text-white block">On duty</span>
             <span className="text-sm text-slate-400">
-              {profile.is_approved
-                ? profile.is_online
-                  ? "Available to receive delivery offers"
-                  : "Offline – turn on to receive offers"
-                : "Turn on to receive offers"}
+              {profile.is_online
+                ? "Available to receive delivery offers"
+                : "Offline – turn on to receive offers"}
             </span>
           </div>
 
@@ -483,7 +481,7 @@ export default function PartnerPage() {
             <input
               type="checkbox"
               className="sr-only peer"
-              disabled={!profile.is_approved || toggling}
+              disabled={toggling}
               checked={profile.is_online}
               onChange={(e) => handleToggleDuty(e.target.checked)}
             />
@@ -491,7 +489,7 @@ export default function PartnerPage() {
               className={`w-14 h-8 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all ${
                 profile.is_online ? "peer-checked:bg-[#00E5B0]" : ""
               } ${
-                !profile.is_approved || toggling
+                toggling
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:opacity-90"
               }`}
@@ -639,7 +637,7 @@ export default function PartnerPage() {
                       type="button"
                       onClick={() => handleAccept(offer)}
                       disabled={isWorking}
-                      className="flex-1 min-h-[44px] px-4 py-2.5 bg-[#00E5B0] hover:bg-[#00c99a] text-slate-950 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50 rq-press"
+                      className="rq-cta flex-1 min-h-[44px] px-4 py-2.5 bg-[#00E5B0] hover:bg-[#00c99a] text-slate-950 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50 rq-press"
                     >
                       {isWorking && workingAction === "accept" ? "Working..." : "Accept"}
                     </button>

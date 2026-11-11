@@ -106,7 +106,7 @@ export function ListingDetailActions({ listing, isOwner }: ListingDetailActionsP
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-brand-teal/20 hover:bg-brand-teal-light transition min-h-[44px]"
+          className="rq-cta py-3 px-4 rounded-xl bg-brand-teal text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-brand-teal/20 hover:bg-brand-teal-light transition min-h-[44px]"
         >
           <Calendar className="w-4 h-4" />
           Rent This

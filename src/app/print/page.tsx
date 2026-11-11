@@ -525,7 +525,7 @@ export default function PrintPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full min-h-[44px] h-[44px] bg-[#00E5B0] hover:bg-[#00c99a] disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-semibold rounded-xl text-base flex items-center justify-center transition"
+            className="rq-cta w-full min-h-[44px] h-[44px] bg-[#00E5B0] hover:bg-[#00c99a] disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-semibold rounded-xl text-base flex items-center justify-center transition"
           >
             {submitting ? "Processing..." : `Order Print • ₹${previewTotals.total_amount}`}
           </button>
