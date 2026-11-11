@@ -4,13 +4,13 @@ import { BottomNav } from "@/components/bottom-nav";
 import { TopNav } from "@/components/top-nav";
 
 export const metadata: Metadata = {
-  title: "RENTIQ - Rent Smart. Spend Less.",
+  title: "RENTIT - Rent Smart. Spend Less.",
   description: "Student-only platform for rentals, printing/Xerox and delivery.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "RENTIQ",
+    title: "RENTIT",
   },
 };
 

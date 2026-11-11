@@ -39,10 +39,10 @@ export default function ListingCard({ listing }: { listing: Listing }) {
             alt={listing.title}
             width={300}
             height={200}
-            className="rounded w-full object-cover h-48"
+            className="rounded w-full object-cover h-[40vh] max-h-[340px]"
           />
         ) : (
-          <div className="h-48 bg-neutral-800 flex items-center justify-center text-gray-500">
+          <div className="h-[40vh] max-h-[340px] bg-neutral-800 flex items-center justify-center text-gray-500">
             No image
           </div>
         )}

@@ -1,14 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Plus, ShoppingBag, User, Package } from "lucide-react";
+import { Home, Search, Plus, ShoppingBag, User, KeyRound } from "lucide-react";
 import { ActionSheet } from "./action-sheet";
+import { createClient } from "@/lib/supabase/client";
 
 export function BottomNav() {
   const pathname = usePathname();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (!pathname?.startsWith("/partner")) {
+      const supabase = createClient();
+      (async () => {
+        try {
+          const { data } = await supabase.auth.getUser();
+          if (data?.user) {
+            await supabase
+              .from("partner_profiles")
+              .update({ is_online: false })
+              .eq("user_id", data.user.id);
+          }
+        } catch {
+          // ignore error
+        }
+      })();
+    }
+  }, [pathname]);
 
   // Hide bottom nav on auth pages
   const hideOnPaths = ["/login", "/signup", "/reset-password"];
@@ -21,7 +41,7 @@ export function BottomNav() {
     { label: "Search", href: "/search", icon: Search },
     { label: "Action", href: "#action", icon: Plus, isAction: true },
     { label: "Orders", href: "/orders", icon: ShoppingBag },
-    { label: "My Services", href: "/service-orders", icon: Package },
+    { label: "Partner", href: "/partner", icon: KeyRound },
     { label: "Profile", href: "/profile", icon: User },
   ];
 

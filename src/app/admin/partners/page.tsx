@@ -138,8 +138,6 @@ export default function AdminPartnersPage() {
   const renderPartnerCard = (partner: Partner) => {
     const isSaving = savingUserId === partner.user_id;
     const shortId = partner.user_id.slice(0, 8);
-    const zonesDisplay =
-      partner.zones && partner.zones.length > 0 ? partner.zones.join(", ") : "No zones";
     const statusText = partner.is_online ? "Online" : "Offline";
     const errorMessage = cardErrors[partner.user_id];
 
@@ -158,10 +156,6 @@ export default function AdminPartnersPage() {
             >
               {statusText}
             </span>
-          </div>
-          <div className="text-base text-slate-300">
-            <span className="text-slate-400">Zones: </span>
-            {zonesDisplay}
           </div>
         </div>
 

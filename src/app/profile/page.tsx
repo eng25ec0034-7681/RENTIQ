@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 import { Profile, VerificationStatus, UserRole } from "@/types";
 import { validateImageFile } from "@/lib/validations";
-import { PartnerZones } from "@/components/PartnerZones";
 import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
@@ -352,7 +351,7 @@ export default function ProfilePage() {
           </div>
           <div className="text-left">
             <div className="text-sm font-semibold text-white">Orders</div>
-            <div className="text-[11px] text-slate-400">Rentals & requests</div>
+            <div className="text-[11px] text-slate-400">Rentals &amp; requests</div>
           </div>
         </Link>
 
@@ -475,7 +474,7 @@ export default function ProfilePage() {
         {/* Read-Only Status & Role Warning */}
         <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-xl text-xs text-slate-400 flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-brand-teal shrink-0" />
-          <span>Verification status & assigned roles are managed securely by campus admins.</span>
+          <span>Verification status &amp; assigned roles are managed securely by campus admins.</span>
         </div>
         <button
           type="submit"
@@ -493,10 +492,6 @@ export default function ProfilePage() {
         </button>
       </form>
 
-      <div className="mt-8">
-        <PartnerZones />
-      </div>
-
       {/* Navigation Section */}
       <div className="mt-8 space-y-6">
         {/* My services */}
@@ -505,21 +500,6 @@ export default function ProfilePage() {
             My services
           </h3>
           <div className="space-y-2">
-            <Link
-              href="/service-orders"
-              className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
-            >
-              <div className="flex flex-col text-left">
-                <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
-                  Service orders
-                </span>
-                <span className="text-sm text-slate-400 mt-0.5">
-                  Track print and parcel orders
-                </span>
-              </div>
-              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
-            </Link>
-
             <Link
               href="/orders"
               className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"

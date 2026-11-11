@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
-import { Loader2, RefreshCw, AlertCircle, Clock, MapPin, Package, Printer } from "lucide-react";
+import { Loader2, RefreshCw, AlertCircle, Clock, Package, Printer } from "lucide-react";
 import Sticker from "@/components/Sticker";
 import { createClient } from "@/lib/supabase/client";
 
@@ -20,8 +20,12 @@ interface OfferItem {
   id: string; // job_id
   type: "Print" | "Parcel";
   jobId: string;
-  pickupZone: string;
   createdAt: string;
+  // print-only fields
+  pageCount?: number;
+  colour?: boolean;
+  copies?: number;
+  deliveryFee?: number;
 }
 
 export default function PartnerPage() {
@@ -234,8 +238,11 @@ export default function PartnerPage() {
           id: row.job_id,
           type: row.offer_type === "Print" ? "Print" : "Parcel",
           jobId: row.job_id,
-          pickupZone: row.pickup_zone,
           createdAt: row.created_at,
+          pageCount: row.page_count ?? undefined,
+          colour: row.colour ?? undefined,
+          copies: row.copies ?? undefined,
+          deliveryFee: row.delivery_fee ?? undefined,
         }));
 
         if (isInitialLoadRef.current) {
@@ -631,12 +638,14 @@ export default function PartnerPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 mt-1">
-                    <MapPin className="w-4 h-4 text-[#00E5B0] shrink-0" />
-                    <span className="text-sm font-medium text-white truncate">
-                      Pickup zone: <span className="text-slate-300">{offer.pickupZone}</span>
-                    </span>
-                  </div>
+                  {offer.type === "Print" ? (
+                    <div className="flex flex-col gap-1 mt-1 text-sm text-slate-300">
+                      <span>Pages: <span className="text-white font-medium">{offer.pageCount ?? "—"}</span></span>
+                      <span>Colour: <span className="text-white font-medium">{offer.colour ? "Colour" : "Black & white"}</span></span>
+                      <span>Copies: <span className="text-white font-medium">{offer.copies ?? 1}</span></span>
+                      <span className="text-slate-400">You receive: delivery fee{offer.deliveryFee != null ? ` (₹${offer.deliveryFee})` : ""} plus printing share</span>
+                    </div>
+                  ) : null}
 
                   <div className="text-[11px] text-slate-500 truncate mt-1">
                     Job ID: {offer.jobId}

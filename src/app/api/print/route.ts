@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient, getUserOrThrow } from "@/lib/supabase/server";
 import { printSchema } from "@/lib/validation/printSchema";
 import {
-  PRINT_ZONES,
-  validatePickupZone,
   validateFilePath,
-  buildPrintInsert,
 } from "@/lib/print/zones";
 
 export async function POST(request: Request) {
@@ -25,9 +22,11 @@ export async function POST(request: Request) {
 
   const normalizedBody = {
     ...body,
+    fulfillment: "DELIVERY",
     doubleSided: body.doubleSided ?? body.double_sided,
     paperSize: body.paperSize ?? body.paper_size,
     paymentMethod: body.paymentMethod ?? body.payment_method,
+    contact_phone: body.contact_phone ?? body.contactPhone,
   };
 
   const parsed = printSchema.safeParse(normalizedBody);
@@ -38,10 +37,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const pickupZone = body.pickup_zone ?? body.pickupZone;
-  const zoneValidation = validatePickupZone(pickupZone);
-  if (!zoneValidation.valid) {
-    return NextResponse.json({ error: zoneValidation.error }, { status: 400 });
+  const rawDropPoint = body.drop_point ?? body.dropPoint;
+  if (typeof rawDropPoint !== "string") {
+    return NextResponse.json(
+      { error: "Validation failed", details: { drop_point: ["Drop point is required"] } },
+      { status: 400 }
+    );
+  }
+  const dropPoint = rawDropPoint.trim();
+  if (dropPoint.length < 3 || dropPoint.length > 200) {
+    return NextResponse.json(
+      { error: "Validation failed", details: { drop_point: ["Drop point must be between 3 and 200 characters"] } },
+      { status: 400 }
+    );
   }
 
   const filePath = body.file_path ?? body.filePath;
@@ -50,18 +58,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: fileValidation.error }, { status: 400 });
   }
 
-  const insertPayload = buildPrintInsert(user.id, {
-    ...parsed.data,
-    pickup_zone: pickupZone,
+  const insertPayload = {
+    customer_id: user.id,
+    pages: parsed.data.pages,
+    copies: parsed.data.copies,
+    colour: parsed.data.colour,
+    double_sided: parsed.data.doubleSided,
+    paper_size: parsed.data.paperSize,
+    binding: parsed.data.binding,
+    stapling: parsed.data.stapling,
+    fulfillment: "DELIVERY",
+    payment_method: parsed.data.paymentMethod,
+    drop_point: dropPoint,
+    pickup_zone: null,
     file_path: filePath,
-  });
+    contact_phone: parsed.data.contact_phone,
+  };
 
   const supabase = await createClient();
 
   const { data: row, error: insertError } = await supabase
     .from("print_orders")
     .insert(insertPayload)
-    .select("id, file_path, printing_cost, delivery_fee, platform_fee, total_amount, pickup_zone, status, payment_status, created_at")
+    .select("id, file_path, printing_cost, delivery_fee, platform_fee, total_amount, pickup_zone, drop_point, status, payment_status, created_at")
     .single();
 
   if (insertError || !row) {
@@ -91,7 +110,6 @@ export async function POST(request: Request) {
       filePath: row.file_path,
       printing_cost: row.printing_cost,
       delivery_fee: row.delivery_fee,
-      platform_fee: row.platform_fee,
       total_amount: row.total_amount,
       job_id: jobId ?? null,
       jobId: jobId ?? null,

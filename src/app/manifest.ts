@@ -2,8 +2,8 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "RENTIQ - Rent Smart. Spend Less.",
-    short_name: "RENTIQ",
+    name: "RENTIT - Rent Smart. Spend Less.",
+    short_name: "RENTIT",
     description: "Student-only platform for rentals, printing/Xerox and delivery.",
     start_url: "/",
     display: "standalone",

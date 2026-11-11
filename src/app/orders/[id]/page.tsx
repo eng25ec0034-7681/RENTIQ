@@ -270,10 +270,6 @@ export default function OrderDetailPage() {
             <span>Security Deposit</span>
             <span>₹0 (Guaranteed)</span>
           </div>
-          <div className="flex justify-between text-emerald-400">
-            <span>Platform Fee</span>
-            <span>₹0 (Student Benefit)</span>
-          </div>
           {rental.pickup_note && (
             <div className="pt-2 border-t border-slate-800">
               <span className="text-slate-400 block mb-0.5">Pickup Point:</span>

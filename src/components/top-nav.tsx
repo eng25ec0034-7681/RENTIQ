@@ -76,7 +76,7 @@ export function TopNav() {
     <header className="sticky top-0 z-30 bg-[#090D16]/90 backdrop-blur-md border-b border-slate-800/80 px-4 h-14 flex items-center justify-between">
       <Link href="/" className="flex items-center gap-2 group">
         <span className="text-xl font-black text-white tracking-tight group-hover:text-brand-teal transition">
-          RENTIQ
+          RENTIT
         </span>
         <span className="text-[10px] font-bold uppercase tracking-wider text-brand-teal bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/20">
           Campus

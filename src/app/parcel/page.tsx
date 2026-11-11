@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { PRINT_ZONES, type PrintZone } from "@/lib/print/zones";
 import {
   MAX_PARCEL_WEIGHT_KG,
   BANNED_ITEMS_TEXT,
@@ -23,7 +22,6 @@ const supabase = createClient();
 
 export default function ParcelPage() {
   // Form state
-  const [pickupZone, setPickupZone] = useState<string>("");
   const [dropPoint, setDropPoint] = useState<string>("");
   const [itemDescription, setItemDescription] = useState<string>("");
   const [weightKg, setWeightKg] = useState<string>("1");
@@ -99,13 +97,12 @@ export default function ParcelPage() {
       return;
     }
 
-    const trimmedPickupZone = pickupZone.trim();
     const trimmedDropPoint = dropPoint.trim();
     const trimmedDescription = itemDescription.trim();
     const parsedWeight = parseFloat(weightKg);
 
     const validation = parcelSchema.safeParse({
-      pickup_zone: trimmedPickupZone,
+      pickup_zone: null,
       drop_point: trimmedDropPoint,
       item_description: trimmedDescription,
       weight_kg: parsedWeight,
@@ -129,7 +126,7 @@ export default function ParcelPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          pickup_zone: validation.data.pickup_zone,
+          pickup_zone: null,
           drop_point: validation.data.drop_point,
           item_description: validation.data.item_description,
           weight_kg: validation.data.weight_kg,
@@ -169,7 +166,6 @@ export default function ParcelPage() {
   };
 
   const handleReset = () => {
-    setPickupZone("");
     setDropPoint("");
     setItemDescription("");
     setWeightKg("1");
@@ -225,10 +221,6 @@ export default function ParcelPage() {
                 <span>Parcel fee</span>
                 <span>₹{submittedTotals.parcel_fee}</span>
               </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Platform fee</span>
-                <span>₹{submittedTotals.platform_fee}</span>
-              </div>
               <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-base">
                 <span>Total</span>
                 <span className="text-[#00E5B0]">₹{submittedTotals.total_amount}</span>
@@ -254,30 +246,6 @@ export default function ParcelPage() {
           onSubmit={handleSubmit}
           className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-5"
         >
-          {/* Pickup Zone */}
-          <div>
-            <label htmlFor="pickup-zone" className="block text-sm font-medium text-slate-300 mb-1">
-              Pickup Zone
-            </label>
-            <input
-              id="pickup-zone"
-              type="text"
-              list="zone-suggestions"
-              value={pickupZone}
-              onChange={(e) => setPickupZone(e.target.value)}
-              placeholder="e.g. Library gate"
-              maxLength={60}
-              required
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white placeholder-slate-500 text-base text-[16px] focus:outline-none focus:border-[#00E5B0] min-h-[44px]"
-              style={{ fontSize: "16px", minHeight: "44px" }}
-            />
-            <datalist id="zone-suggestions">
-              {PRINT_ZONES.map((zone) => (
-                <option key={zone} value={zone} />
-              ))}
-            </datalist>
-          </div>
-
           {/* Drop Point */}
           <div>
             <label htmlFor="drop-point" className="block text-sm font-medium text-slate-300 mb-1">
@@ -384,10 +352,6 @@ export default function ParcelPage() {
               <div className="flex justify-between text-slate-300">
                 <span>Parcel fee</span>
                 <span>{parcelFee !== null ? `₹${parcelFee}` : "—"}</span>
-              </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Platform fee</span>
-                <span>{platformFee !== null ? `₹${platformFee}` : "—"}</span>
               </div>
               <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-base">
                 <span>Total</span>

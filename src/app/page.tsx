@@ -35,7 +35,7 @@ export default async function HomePage() {
   return (
     <div className="flex-1 flex flex-col px-4 py-6">
       <header className="mb-6 text-center">
-        <h1 className="text-3xl font-black text-white tracking-tight">RENTIQ</h1>
+        <h1 className="text-3xl font-black text-white tracking-tight">RENTIT</h1>
         <p className="text-sm font-semibold text-brand-teal mt-0.5">Rent Smart. Spend Less.</p>
       </header>
 
@@ -100,12 +100,14 @@ export default async function HomePage() {
           {categories.map((cat) => {
             const Icon = cat.icon;
             return (
-              <div key={cat.name} className="flex flex-col items-center justify-center min-w-[80px] p-3 rounded-2xl bg-slate-900 border border-slate-800 shrink-0 text-center hover:border-slate-700 transition">
-                <div className="w-10 h-10 rounded-xl bg-slate-800/80 text-brand-teal flex items-center justify-center mb-1.5">
-                  <Icon className="w-5 h-5" />
+              <Link key={cat.name} href={`/search?category=${cat.name.toLowerCase()}`}>
+                <div className="block flex flex-col items-center justify-center min-w-[80px] p-3 rounded-2xl bg-slate-900 border border-slate-800 shrink-0 text-center hover:border-slate-700 transition">
+                  <div className="w-10 h-10 rounded-xl bg-slate-800/80 text-brand-teal flex items-center justify-center mb-1.5">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-medium text-slate-300">{cat.name}</span>
                 </div>
-                <span className="text-[11px] font-medium text-slate-300">{cat.name}</span>
-              </div>
+              </Link>
             );
           })}
         </div>

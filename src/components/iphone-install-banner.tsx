@@ -34,7 +34,7 @@ export function IPhoneInstallBanner() {
           <Share className="w-5 h-5" />
         </div>
         <div>
-          <h4 className="font-semibold text-white mb-1">Install RENTIQ on iPhone</h4>
+          <h4 className="font-semibold text-white mb-1">Install RENTIT on iPhone</h4>
           <p className="text-xs text-slate-300 leading-relaxed">
             Tap the <Share className="w-3.5 h-3.5 inline mx-0.5 text-brand-teal" /> Share button in Safari, then select{" "}
             <span className="font-semibold text-brand-teal inline-flex items-center gap-1">

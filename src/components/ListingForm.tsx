@@ -84,6 +84,7 @@ export default function ListingForm({ initialData, listingId }: ListingFormProps
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...parse.data,
+          pickup_zone: null,
           owner_phone: phoneVal || null,
           share_phone: shareVal,
         }),
@@ -263,32 +264,17 @@ export default function ListingForm({ initialData, listingId }: ListingFormProps
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-            College / Campus (Optional)
-          </label>
-          <input
-            type="text"
-            name="college"
-            placeholder="e.g. Main Campus / Block A"
-            className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-base placeholder-slate-500 focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal min-h-[44px]"
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-            Pickup Zone (Optional)
-          </label>
-          <input
-            type="text"
-            name="pickup_zone"
-            placeholder="e.g. Library Entrance, Hostel 4"
-            className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-base placeholder-slate-500 focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal min-h-[44px]"
-            onChange={handleChange}
-          />
-        </div>
+      <div>
+        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+          College / Campus (Optional)
+        </label>
+        <input
+          type="text"
+          name="college"
+          placeholder="e.g. Main Campus / Block A"
+          className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-base placeholder-slate-500 focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal min-h-[44px]"
+          onChange={handleChange}
+        />
       </div>
 
       <div className="space-y-3 pt-1">

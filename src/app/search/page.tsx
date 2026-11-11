@@ -40,10 +40,11 @@ function sanitize(input: string) {
 function SearchInner() {
   const params = useSearchParams();
   const initialQuery = params.get("q") ?? "";
+  const initialCategory = params.get("category");
 
   const [text, setText] = useState(initialQuery);
   const [debounced, setDebounced] = useState(initialQuery);
-  const [category, setCategory] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>(initialCategory ?? null);
   const [priceRange, setPriceRange] = useState<number | null>(null);
   const [condition, setCondition] = useState<string | null>(null);
   const [sort, setSort] = useState<SortValue>("newest");

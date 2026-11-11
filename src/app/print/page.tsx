@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { PRINT_ZONES, type PrintZone } from "@/lib/print/zones";
 import { calculatePrintOrderTotal } from "@/lib/print/pricing";
 
 interface PrintOrderTotals {
   order_id?: string;
   printing_cost: number;
   delivery_fee: number;
-  platform_fee: number;
   total_amount: number;
 }
 
@@ -38,14 +36,12 @@ export default function PrintPage() {
   const [paperSize, setPaperSize] = useState<"A4" | "A3">("A4");
   const [binding, setBinding] = useState<boolean>(false);
   const [stapling, setStapling] = useState<boolean>(false);
-  const [pickupZone, setPickupZone] = useState<string>("");
-  const [fulfillment, setFulfillment] = useState<"PICKUP" | "DELIVERY">("PICKUP");
+  const [dropPoint, setDropPoint] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "UPI">("CASH");
   const [contactPhone, setContactPhone] = useState("");
 
   // Auth & Pricing Settings
   const [userId, setUserId] = useState<string | null>(null);
-  const [platformFee, setPlatformFee] = useState<number>(0);
 
   // Status State
   const [error, setError] = useState<string | null>(null);
@@ -71,23 +67,6 @@ export default function PrintPage() {
         }
       } catch {
         // Fallback handled on submit
-      }
-
-      try {
-        const { data, error: feeError } = await supabase
-          .from("platform_settings")
-          .select("value")
-          .eq("key", "platform_fee")
-          .maybeSingle();
-
-        if (!feeError && data?.value !== undefined && data?.value !== null && isMounted) {
-          const parsed = typeof data.value === "number" ? data.value : Number(data.value);
-          if (!isNaN(parsed)) {
-            setPlatformFee(parsed);
-          }
-        }
-      } catch (err) {
-        console.warn("Could not load platform_fee:", err);
       }
     }
 
@@ -124,8 +103,7 @@ export default function PrintPage() {
     setPaperSize("A4");
     setBinding(false);
     setStapling(false);
-    setPickupZone("");
-    setFulfillment("PICKUP");
+    setDropPoint("");
     setPaymentMethod("CASH");
     setError(null);
   };
@@ -153,6 +131,12 @@ export default function PrintPage() {
     const copiesNum = typeof copies === "number" ? copies : parseInt(copies as string, 10);
     if (isNaN(copiesNum) || copiesNum < 1 || copiesNum > 100) {
       setError("Copies must be between 1 and 100.");
+      return;
+    }
+
+    const trimmedDropPoint = dropPoint.trim();
+    if (trimmedDropPoint.length < 3 || trimmedDropPoint.length > 200) {
+      setError("Delivery location must be between 3 and 200 characters.");
       return;
     }
 
@@ -205,9 +189,8 @@ export default function PrintPage() {
           paperSize,
           binding,
           stapling,
-          pickup_zone: pickupZone.trim(),
-          pickupZone: pickupZone.trim(),
-          fulfillment,
+          drop_point: trimmedDropPoint,
+          dropPoint: trimmedDropPoint,
           payment_method: paymentMethod,
           paymentMethod,
           contact_phone: contactPhone,
@@ -236,7 +219,6 @@ export default function PrintPage() {
         order_id: result.order_id || result.orderId,
         printing_cost: Number(result.printing_cost ?? 0),
         delivery_fee: Number(result.delivery_fee ?? 0),
-        platform_fee: Number(result.platform_fee ?? 0),
         total_amount: Number(result.total_amount ?? 0),
       });
     } catch (err: any) {
@@ -256,11 +238,11 @@ export default function PrintPage() {
       paperSize,
       binding,
       stapling,
-      fulfillment,
+      fulfillment: "DELIVERY",
       paymentMethod,
     },
     {
-      platform_fee: platformFee,
+      platform_fee: 0,
     }
   );
 
@@ -309,15 +291,9 @@ export default function PrintPage() {
                 <span>Printing</span>
                 <span>₹{submittedTotals.printing_cost}</span>
               </div>
-              {submittedTotals.delivery_fee > 0 && (
-                <div className="flex justify-between text-slate-300">
-                  <span>Delivery</span>
-                  <span>₹{submittedTotals.delivery_fee}</span>
-                </div>
-              )}
               <div className="flex justify-between text-slate-300">
-                <span>Platform fee</span>
-                <span>₹{submittedTotals.platform_fee}</span>
+                <span>Delivery fee</span>
+                <span>₹{submittedTotals.delivery_fee}</span>
               </div>
               <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-base">
                 <span>Total</span>
@@ -325,6 +301,10 @@ export default function PrintPage() {
               </div>
             </div>
           </div>
+
+          <p className="text-xs text-slate-400 text-center">
+            Your order is delivered by a student partner.
+          </p>
 
           <p className="text-xs text-slate-400 text-center">
             Your file is deleted 48 hours after the order is completed.
@@ -469,63 +449,40 @@ export default function PrintPage() {
             </label>
           </div>
 
-          {/* Pickup Zone */}
+          {/* Delivery location */}
           <div>
-            <label htmlFor="pickup-zone" className="block text-sm font-medium text-slate-300 mb-1">
-              Pickup Zone
+            <label htmlFor="delivery-location" className="block text-sm font-medium text-slate-300 mb-1">
+              Delivery location
             </label>
             <input
-              id="pickup-zone"
+              id="delivery-location"
               type="text"
-              list="zone-suggestions"
-              value={pickupZone}
-              onChange={(e) => setPickupZone(e.target.value)}
-              placeholder="e.g. Library gate"
-              maxLength={60}
+              value={dropPoint}
+              onChange={(e) => setDropPoint(e.target.value)}
+              placeholder="e.g. Hostel Block B Room 302"
+              minLength={3}
+              maxLength={200}
               required
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-base text-[16px] focus:outline-none focus:border-[#00E5B0] min-h-[44px]"
               style={{ fontSize: "16px", minHeight: "44px" }}
             />
-            <datalist id="zone-suggestions">
-              {PRINT_ZONES.map((zone) => (
-                <option key={zone} value={zone} />
-              ))}
-            </datalist>
           </div>
 
-          {/* Fulfillment and Payment Method */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="fulfillment" className="block text-sm font-medium text-slate-300 mb-1">
-                Fulfillment
-              </label>
-              <select
-                id="fulfillment"
-                value={fulfillment}
-                onChange={(e) => setFulfillment(e.target.value as "PICKUP" | "DELIVERY")}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-base text-[16px] focus:outline-none focus:border-[#00E5B0]"
-                style={{ fontSize: "16px" }}
-              >
-                <option value="PICKUP">PICKUP</option>
-                <option value="DELIVERY">DELIVERY</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="payment-method" className="block text-sm font-medium text-slate-300 mb-1">
-                Payment Method
-              </label>
-              <select
-                id="payment-method"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value as "CASH" | "UPI")}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-base text-[16px] focus:outline-none focus:border-[#00E5B0]"
-                style={{ fontSize: "16px" }}
-              >
-                <option value="CASH">CASH</option>
-                <option value="UPI">UPI</option>
-              </select>
-            </div>
+          {/* Payment Method */}
+          <div>
+            <label htmlFor="payment-method" className="block text-sm font-medium text-slate-300 mb-1">
+              Payment Method
+            </label>
+            <select
+              id="payment-method"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value as "CASH" | "UPI")}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-base text-[16px] focus:outline-none focus:border-[#00E5B0]"
+              style={{ fontSize: "16px" }}
+            >
+              <option value="CASH">CASH</option>
+              <option value="UPI">UPI</option>
+            </select>
           </div>
 
           {/* Live Price Summary */}
@@ -536,15 +493,9 @@ export default function PrintPage() {
                 <span>Printing</span>
                 <span>₹{previewTotals.printing_cost}</span>
               </div>
-              {fulfillment === "DELIVERY" && (
-                <div className="flex justify-between text-slate-300">
-                  <span>Delivery</span>
-                  <span>₹{previewTotals.delivery_fee}</span>
-                </div>
-              )}
               <div className="flex justify-between text-slate-300">
-                <span>Platform fee</span>
-                <span>₹{previewTotals.platform_fee}</span>
+                <span>Delivery fee</span>
+                <span>₹{previewTotals.delivery_fee}</span>
               </div>
               <div className="border-t border-slate-800 pt-2 flex justify-between font-bold text-white text-base">
                 <span>Total</span>
