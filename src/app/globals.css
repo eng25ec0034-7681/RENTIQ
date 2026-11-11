@@ -598,3 +598,141 @@ input[type="checkbox"] {
 
 
 
+
+/* ============================================================
+   Appended 2026-11-11
+   ============================================================ */
+
+body {
+  background: linear-gradient(180deg, #F7F9FE 0%, #EDF2FB 100%) !important;
+  background-attachment: fixed !important;
+}
+
+h2.text-xs,
+.text-xs.font-semibold.uppercase {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+h2.text-xs::before,
+.text-xs.font-semibold.uppercase::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--blue, #2563EB);
+  flex: 0 0 auto;
+}
+
+.rounded-2xl.bg-slate-900,
+.rounded-2xl.bg-slate-900\/90,
+.rounded-xl.bg-slate-900,
+.rounded-2xl.bg-slate-900\/50 {
+  border-color: #E1E9F6 !important;
+  box-shadow: 0 2px 8px rgba(16, 32, 65, 0.05) !important;
+}
+
+.flex.gap-3.overflow-x-auto > a:nth-child(1) > span:first-child { background: #E8EFFE !important; color: #2563EB !important; }
+.flex.gap-3.overflow-x-auto > a:nth-child(2) > span:first-child { background: #FFF1E6 !important; color: #EA580C !important; }
+.flex.gap-3.overflow-x-auto > a:nth-child(3) > span:first-child { background: #E6F7F1 !important; color: #0F9D6E !important; }
+.flex.gap-3.overflow-x-auto > a:nth-child(4) > span:first-child { background: #F3EEFE !important; color: #7C3AED !important; }
+.flex.gap-3.overflow-x-auto > a:nth-child(5) > span:first-child { background: #E6F4FB !important; color: #0284C7 !important; }
+.flex.gap-3.overflow-x-auto > a:nth-child(6) > span:first-child { background: #FDECF3 !important; color: #DB2777 !important; }
+.flex.gap-3.overflow-x-auto > a:nth-child(7) > span:first-child { background: #FEF4E6 !important; color: #B45309 !important; }
+
+.grid.grid-cols-4 > a:nth-child(odd) > span:first-child {
+  background: #E8EFFE !important;
+  color: #2563EB !important;
+}
+
+.grid.grid-cols-4 > a:nth-child(even) > span:first-child {
+  background: #FFF1E6 !important;
+  color: #EA580C !important;
+}
+
+.rq-opt {
+  background: #FFFFFF !important;
+  border: 1.5px solid #E1E9F6 !important;
+  border-radius: 14px !important;
+  color: #334155 !important;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rq-opt:hover { border-color: #BFD3FE !important; }
+
+.rq-opt[aria-pressed="true"],
+.rq-opt.rq-opt-on {
+  background: #E8EFFE !important;
+  border-color: #2563EB !important;
+  color: #1D4ED8 !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+}
+
+.rq-opt[aria-pressed="true"] .rq-opt-price { color: #2563EB !important; }
+.rq-opt-price { color: #64748B !important; font-size: 11.5px !important; }
+
+[aria-pressed="true"].bg-slate-900,
+[aria-pressed="true"].bg-slate-800 {
+  background: #E8EFFE !important;
+  border-color: #2563EB !important;
+  color: #1D4ED8 !important;
+}
+
+.rq-summary,
+.rq-summary.bg-slate-900 {
+  background: linear-gradient(180deg, #F2F6FE 0%, #E8EFFE 100%) !important;
+  border: 1px solid #CFDDFB !important;
+  border-radius: 16px !important;
+}
+
+.rq-summary .rq-summary-total,
+.rq-summary .font-bold.text-white {
+  color: #1D4ED8 !important;
+}
+
+.rq-stat-row {
+  background: #FFFFFF !important;
+  border: 1px solid #E1E9F6 !important;
+}
+
+.rq-stat-row.rq-stat-on {
+  background: #EFF5FF !important;
+  border-color: #BFD3FE !important;
+}
+
+.rq-empty,
+.rounded-2xl.bg-slate-900\/50.p-8,
+.rounded-3xl.bg-slate-900\/60 {
+  background: linear-gradient(180deg, #FAFCFF 0%, #EFF4FD 100%) !important;
+  border: 1px solid #E1E9F6 !important;
+}
+
+nav[aria-label="Bottom Navigation"] a.text-brand-teal {
+  background: #E8EFFE !important;
+  border-radius: 12px !important;
+  padding: 4px 10px !important;
+}
+
+button.bg-slate-800,
+button.bg-slate-900,
+a.bg-slate-900.border {
+  background: #FFFFFF !important;
+  border: 1px solid #DCE5F5 !important;
+  color: #334155 !important;
+}
+
+button.bg-slate-800:hover,
+button.bg-slate-900:hover {
+  background: #F3F7FE !important;
+  border-color: #BFD3FE !important;
+}
+
+.text-brand-teal.bg-teal-500\/10,
+.bg-brand-teal\/10 { border-radius: 999px !important; }
+
+input:not(.rq-hero-search input),
+select,
+textarea { background: #FBFCFE !important; }
+
+input:focus, select:focus, textarea:focus { background: #FFFFFF !important; }
