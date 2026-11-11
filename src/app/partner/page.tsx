@@ -55,6 +55,7 @@ export default function PartnerPage() {
   const [workingAction, setWorkingAction] = useState<"accept" | "reject" | null>(null);
   const [offerErrors, setOfferErrors] = useState<Record<string, string>>({});
   const [dismissedAlertFor, setDismissedAlertFor] = useState<string[]>([]);
+  const [showAlertOverlay, setShowAlertOverlay] = useState(false);
 
   const playBeep = useCallback(() => {
     try {
@@ -155,7 +156,7 @@ export default function PartnerPage() {
         try {
           if (typeof osc.stop === "function") osc.stop();
           if (typeof osc.disconnect === "function") osc.disconnect();
-        } catch { }
+        } catch {}
       });
       activeOscillatorsRef.current.clear();
 
@@ -164,7 +165,7 @@ export default function PartnerPage() {
           if (typeof audioContextRef.current.close === "function") {
             audioContextRef.current.close();
           }
-        } catch { }
+        } catch {}
       }
     };
   }, []);
@@ -258,6 +259,7 @@ export default function PartnerPage() {
               seenOfferIdsRef.current.add(item.id);
               if (alertsEnabledRef.current) {
                 startAlert(item.id);
+                setShowAlertOverlay(true);
               }
             }
           });
@@ -679,9 +681,15 @@ export default function PartnerPage() {
         )}
       </section>
 
-      {offers.length > 0 && !dismissedAlertFor.includes(offers[0].id) && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 rq-slide-up">
-          <div className="w-full max-w-md bg-slate-900 border border-brand-teal/40 rounded-3xl p-5 shadow-2xl">
+      {showAlertOverlay && offers.length > 0 && !dismissedAlertFor.includes(offers[0].id) && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 rq-slide-up"
+          onClick={() => setShowAlertOverlay(false)}
+        >
+          <div
+            className="w-full max-w-md bg-slate-900 border border-brand-teal/40 rounded-3xl p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <p className="text-[11px] font-bold uppercase tracking-wider text-brand-teal mb-1">
               New order  ringing
             </p>
@@ -694,7 +702,10 @@ export default function PartnerPage() {
             <div className="flex gap-3 mt-5">
               <button
                 type="button"
-                onClick={() => handleAccept(offers[0])}
+                onClick={() => {
+                  setShowAlertOverlay(false);
+                  handleAccept(offers[0]);
+                }}
                 className="flex-1 min-h-[52px] rounded-xl bg-brand-teal text-slate-950 text-base font-bold rq-press rq-cta"
               >
                 Accept
@@ -702,6 +713,7 @@ export default function PartnerPage() {
               <button
                 type="button"
                 onClick={() => {
+                  setShowAlertOverlay(false);
                   setDismissedAlertFor((prev) => [...prev, offers[0].id]);
                   handleReject(offers[0]);
                 }}
