@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Plus, ShoppingBag, User, KeyRound } from "lucide-react";
+import { Home, Plus, ShoppingBag, User, KeyRound } from "lucide-react";
 import { ActionSheet } from "./action-sheet";
 import { createClient } from "@/lib/supabase/client";
 
@@ -38,7 +38,6 @@ export function BottomNav() {
 
   const navItems = [
     { label: "Home", href: "/", icon: Home },
-    { label: "Search", href: "/search", icon: Search },
     { label: "Action", href: "#action", icon: Plus, isAction: true },
     { label: "Orders", href: "/orders", icon: ShoppingBag },
     { label: "Partner", href: "/partner", icon: KeyRound },

@@ -301,7 +301,7 @@ function SearchInner() {
       )}
 
       {loading && results.length === 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2.5">
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
@@ -325,7 +325,7 @@ function SearchInner() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2.5">
           {results.map((listing) => (
             <ListingCard key={listing.id} listing={listing} />
           ))}

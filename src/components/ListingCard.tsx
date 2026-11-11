@@ -1,78 +1,79 @@
 "use client";
 
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { Listing } from '@/types';
-import FavoriteButton from '@/components/FavoriteButton';
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { Listing } from "@/types";
+import FavoriteButton from "@/components/FavoriteButton";
 
 export default function ListingCard({ listing }: { listing: Listing }) {
   const router = useRouter();
 
   const handleClick = () => router.push(`/listing/${listing.id}`);
 
-  // Sort listing_photos by position ascending and pick the first one as cover
   const sortedPhotos = listing.listing_photos
     ? [...listing.listing_photos].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
     : [];
   const primaryStoragePath = sortedPhotos[0]?.storage_path;
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mdyvponmttlgyitzfbto.supabase.co";
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mdyvponmttlgyitzfbto.supabase.co";
 
   const resolvedCoverUrl = listing.coverPhotoUrl
     ? listing.coverPhotoUrl
     : primaryStoragePath
-    ? (primaryStoragePath.startsWith("http")
-        ? primaryStoragePath
-        : `${supabaseUrl}/storage/v1/object/public/listing-photos/${primaryStoragePath}`)
+    ? primaryStoragePath.startsWith("http")
+      ? primaryStoragePath
+      : `${supabaseUrl}/storage/v1/object/public/listing-photos/${primaryStoragePath}`
     : null;
 
   return (
     <div
-      className="cursor-pointer rounded-2xl bg-slate-900 border border-slate-800 p-2.5 hover:border-slate-700 transition-colors relative group"
       onClick={handleClick}
+      className="cursor-pointer rounded-xl bg-slate-900 border border-slate-800 overflow-hidden flex flex-col active:scale-[0.98] transition-transform"
     >
-      {/* Cover photo – fallback to placeholder if missing */}
-      <div className="relative w-full overflow-hidden rounded">
+      <div className="relative w-full aspect-square bg-slate-800">
         {resolvedCoverUrl ? (
           <Image
             src={resolvedCoverUrl}
             alt={listing.title}
-            width={300}
-            height={200}
-            className="rounded w-full object-cover h-[40vh] max-h-[340px]"
+            fill
+            sizes="(max-width: 768px) 50vw, 33vw"
+            className="object-cover"
           />
         ) : (
-          <div className="h-[40vh] max-h-[340px] bg-neutral-800 flex items-center justify-center text-gray-500">
-            No image
+          <div className="absolute inset-0 flex items-center justify-center text-[11px] text-slate-500">
+            No photo
           </div>
         )}
+
         <div
-          className="absolute top-2 right-2 z-10"
+          className="absolute top-1.5 right-1.5 z-10"
           onClick={(e) => e.stopPropagation()}
         >
           <FavoriteButton listingId={listing.id} />
         </div>
-      </div>
-      <h3 className="mt-2 text-base font-semibold text-white truncate" title={listing.title}>
-        {listing.title}
-      </h3>
-      <div className="flex items-baseline gap-1 mt-0.5">
-        <span className="text-lg font-bold text-white">₹{listing.price_per_day}</span>
-        <span className="text-xs text-slate-400">/day</span>
-        {listing.max_rental_days ? (
-          <span className="text-xs text-slate-500 ml-auto">up to {listing.max_rental_days}d</span>
-        ) : null}
-      </div>
-      <div className="flex items-center space-x-2 mt-1">
-        <span className="px-2 py-0.5 rounded-md bg-brand-teal/15 text-brand-teal border border-brand-teal/30 text-[11px] font-semibold capitalize">
-          {listing.condition}
-        </span>
-        {listing.college && (
-          <span className="text-xs text-slate-400">{listing.college}</span>
-        )}
+
         {listing.delivery_available && (
-          <span className="text-[11px] bg-slate-800 text-slate-300 border border-slate-700 rounded px-1.5 py-0.5">Delivery</span>
+          <span className="absolute bottom-1.5 left-1.5 text-[9px] font-bold uppercase tracking-wide bg-slate-950/80 text-brand-teal px-1.5 py-0.5 rounded">
+            Delivery
+          </span>
         )}
+      </div>
+
+      <div className="p-2 flex flex-col flex-1">
+        <h3 className="text-[12.5px] font-medium text-white leading-snug line-clamp-2 min-h-[32px]">
+          {listing.title}
+        </h3>
+
+        <div className="flex items-baseline gap-1 mt-1">
+          <span className="text-[15px] font-bold text-white">₹{listing.price_per_day}</span>
+          <span className="text-[10px] text-slate-400">/day</span>
+        </div>
+
+        <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+          {String(listing.condition).replace("_", " ").toLowerCase()}
+          {listing.college ? `  ${listing.college}` : ""}
+        </p>
       </div>
     </div>
   );

@@ -2,19 +2,11 @@
 import Link from "next/link";
 import { Search, Printer, Truck, PlusCircle, KeyRound, BookOpen, Calculator, Trophy, Cpu, FolderGit2, Calendar, PackageCheck } from "lucide-react";
 import { IPhoneInstallBanner } from "@/components/iphone-install-banner";
-import ListingCard from "@/components/ListingCard";
 import WelcomeGreeting from "@/components/welcome-greeting";
 import { createServerClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
   const supabase = await createServerClient();
-
-  const { data: recentListings } = await supabase
-    .from("listings")
-    .select("*, listing_photos(storage_path, position)")
-    .eq("status", "ACTIVE")
-    .order("created_at", { ascending: false })
-    .limit(8);
 
   const {
     data: { user },
@@ -90,33 +82,6 @@ export default async function HomePage() {
         {user && <WelcomeGreeting name={welcomeName} />}
 
         <section className="mb-6 mt-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-white">Recommended for you</h2>
-            <Link href="/rent" className="text-sm font-bold text-brand-teal">
-              See all
-            </Link>
-          </div>
-
-          {recentListings && recentListings.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {recentListings.map((l: any) => (
-                <ListingCard key={l.id} listing={l} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center">
-              <p className="text-sm font-medium text-slate-300">Nothing listed yet.</p>
-              <Link
-                href="/give"
-                className="mt-3 inline-flex items-center justify-center px-4 py-2.5 bg-brand-teal text-slate-950 text-sm font-bold rounded-xl min-h-[44px]"
-              >
-                List the first item
-              </Link>
-            </div>
-          )}
-        </section>
-
-        <section className="mb-6">
           <div className="grid grid-cols-4 gap-2">
             {quickActions.map((action) => {
               const Icon = action.icon;

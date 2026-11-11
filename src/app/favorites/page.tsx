@@ -36,7 +36,7 @@ export default async function FavoritesPage() {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4 text-white">My Favorites</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-2.5">
         {listings?.map((l: any) => (
           <ListingCard key={l.id} listing={l} />
         ))}
