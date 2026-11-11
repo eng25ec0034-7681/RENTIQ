@@ -155,7 +155,7 @@ export default function PartnerPage() {
         try {
           if (typeof osc.stop === "function") osc.stop();
           if (typeof osc.disconnect === "function") osc.disconnect();
-        } catch {}
+        } catch { }
       });
       activeOscillatorsRef.current.clear();
 
@@ -164,7 +164,7 @@ export default function PartnerPage() {
           if (typeof audioContextRef.current.close === "function") {
             audioContextRef.current.close();
           }
-        } catch {}
+        } catch { }
       }
     };
   }, []);
@@ -506,24 +506,17 @@ export default function PartnerPage() {
             </span>
           </div>
 
-          <label className="relative inline-flex items-center cursor-pointer min-h-[44px]">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              disabled={toggling}
-              checked={profile.is_online}
-              onChange={(e) => handleToggleDuty(e.target.checked)}
-            />
-            <div
-              className={`w-14 h-8 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all ${
-                profile.is_online ? "peer-checked:bg-[#00E5B0]" : ""
-              } ${
-                toggling
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:opacity-90"
-              }`}
-            />
-          </label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={profile.is_online}
+            aria-label="On duty"
+            onClick={() => handleToggleDuty(!profile.is_online)}
+            disabled={toggling}
+            className={`rq-switch ${profile.is_online ? "rq-switch-on" : ""}`}
+          >
+            <span className="rq-switch-knob" />
+          </button>
         </div>
 
         {toggling && (

@@ -312,39 +312,40 @@ input[type="checkbox"] {
   accent-color: var(--brand) !important
 }
 
-
-label input.peer+div {
-  width: 52px !important;
-  height: 36px !important;
-  border-radius: 999px !important;
-  background: #E2E8F0 !important;
-  transition: background-color 0.18s ease !important;
+.rq-switch {
+  position: relative;
+  width: 56px;
+  height: 32px;
+  border-radius: 999px;
+  background: #DCE3EF;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: background-color 0.2s ease;
 }
 
-label input.peer:checked+div {
-  background: var(--brand) !important;
+.rq-switch-on {
+  background: var(--brand);
 }
 
-label input.peer+div::after {
-  width: 24px !important;
-  height: 24px !important;
-  top: 3px !important;
-  left: 3px !important;
-  border: 0 !important;
-  border-radius: 999px !important;
-  background: #FFFFFF !important;
-  box-shadow: 0 1px 3px rgba(11, 18, 32, 0.28) !important;
-  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+.rq-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-label input.peer:checked+div::after {
-  transform: translateX(22px) !important;
+.rq-switch-knob {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(11, 18, 32, 0.3);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-label input.peer:disabled+div {
-  opacity: 0.45 !important;
-}
-
-label input.peer:focus-visible+div {
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+.rq-switch-on .rq-switch-knob {
+  transform: translateX(24px);
 }
