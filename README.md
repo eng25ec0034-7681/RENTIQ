@@ -121,3 +121,5 @@ You should see all tests pass and the build complete without errors.
 - **Security & Privacy**: Strict RLS on all tables, server-side Zod validation, zero exposure of email/phone numbers (name & college only), IDOR protection.
 
 ---
+
+<!-- rebuild 2026-11-11T20:45:35 -->
