@@ -195,10 +195,6 @@ export default function AdminEarningsPage() {
               <span className="text-slate-400">Partner earnings: </span>
               <span className="font-semibold text-emerald-400">₹{todayPartnerEarnings}</span>
             </div>
-            <div className="text-slate-300">
-              <span className="text-slate-400">Platform fee kept: </span>
-              <span className="font-semibold text-brand-teal">₹{todayPlatformFee}</span>
-            </div>
           </div>
         </div>
 
@@ -213,10 +209,6 @@ export default function AdminEarningsPage() {
             <div className="text-slate-300">
               <span className="text-slate-400">Partner earnings: </span>
               <span className="font-semibold text-emerald-400">₹{weekPartnerEarnings}</span>
-            </div>
-            <div className="text-slate-300">
-              <span className="text-slate-400">Platform fee kept: </span>
-              <span className="font-semibold text-brand-teal">₹{weekPlatformFee}</span>
             </div>
           </div>
         </div>
@@ -233,13 +225,12 @@ export default function AdminEarningsPage() {
                 <th className="py-3 px-4">Date</th>
                 <th className="py-3 px-4">Jobs</th>
                 <th className="py-3 px-4">Partner Earnings</th>
-                <th className="py-3 px-4">Platform Fee</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
               {weekRows.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-6 px-4 text-center text-slate-400">
+                  <td colSpan={3} className="py-6 px-4 text-center text-slate-400">
                     No completed jobs in the last 7 days.
                   </td>
                 </tr>
@@ -249,7 +240,6 @@ export default function AdminEarningsPage() {
                     <td className="py-3 px-4 font-medium text-white">{row.day}</td>
                     <td className="py-3 px-4">{row.jobs}</td>
                     <td className="py-3 px-4 text-emerald-400 font-semibold">₹{row.partner_earnings}</td>
-                    <td className="py-3 px-4 text-brand-teal font-semibold">₹{row.platform_fee}</td>
                   </tr>
                 ))
               )}

@@ -465,27 +465,6 @@ export default function PartnerPage() {
         </p>
       </header>
 
-      {/* Account not approved banner */}
-      {!profile.is_approved && (
-        <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-base font-medium text-amber-300">
-              Complete your payout details to start receiving jobs.
-            </p>
-            <p className="text-sm text-slate-400 mt-1">
-              You can see offers once Razorpay verifies your bank details.
-            </p>
-            <Link
-              href="/partner/payout"
-              className="mt-3 inline-flex items-center justify-center px-4 py-2 bg-brand-teal text-slate-950 font-semibold rounded-xl text-base min-h-[44px] hover:bg-brand-teal-light transition"
-            >
-              Add payout details
-            </Link>
-          </div>
-        </div>
-      )}
-
       {/* Duty toggle card */}
       <section className="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
         <div className="flex items-center justify-between">
@@ -496,7 +475,7 @@ export default function PartnerPage() {
                 ? profile.is_online
                   ? "Available to receive delivery offers"
                   : "Offline – turn on to receive offers"
-                : "Complete payout details to go online"}
+                : "Turn on to receive offers"}
             </span>
           </div>
 
@@ -602,7 +581,7 @@ export default function PartnerPage() {
               No open offers right now.
             </p>
             <p className="text-sm text-slate-500 mt-1">
-              New pickup offers will appear here automatically when available in your zones.
+              New pickup offers will appear here automatically when they match your area.
             </p>
           </div>
         ) : (

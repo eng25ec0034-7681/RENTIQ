@@ -583,21 +583,6 @@ export default function ProfilePage() {
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
               </Link>
-
-              <Link
-                href="/partner/payout"
-                className="w-full min-h-[44px] flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:bg-slate-800/50 transition group"
-              >
-                <div className="flex flex-col text-left">
-                  <span className="text-base font-semibold text-white group-hover:text-brand-teal transition">
-                    Payout details
-                  </span>
-                  <span className="text-sm text-slate-400 mt-0.5">
-                    Bank details for payments
-                  </span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition shrink-0 ml-3" />
-              </Link>
             </div>
           </section>
         )}
