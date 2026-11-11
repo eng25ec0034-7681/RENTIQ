@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./theme.css";
 import { BottomNav } from "@/components/bottom-nav";
 import { TopNav } from "@/components/top-nav";
 
@@ -28,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-[#090D16] text-white min-h-[100dvh] flex flex-col antialiased selection:bg-brand-teal selection:text-slate-950">
+    <html lang="en">
+      <body className="min-h-[100dvh] flex flex-col antialiased">
         <TopNav />
         <main className="flex-1 w-full max-w-lg mx-auto min-h-[100dvh] flex flex-col pb-20">
           {children}
