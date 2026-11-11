@@ -93,7 +93,22 @@ export default function ListingForm({ initialData, listingId }: ListingFormProps
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(result.error || result.message || `Failed to create listing (Status ${response.status})`);
+        const detailText =
+          result?.details && typeof result.details === "object"
+            ? Object.entries(result.details)
+                .map(([field, msgs]: [string, any]) => {
+                  const list = Array.isArray(msgs) ? msgs : msgs?._errors ?? [];
+                  return list.length ? `${field}: ${list.join(", ")}` : "";
+                })
+                .filter(Boolean)
+                .join("\n")
+            : "";
+        throw new Error(
+          detailText ||
+            result.error ||
+            result.message ||
+            `Failed to create listing (Status ${response.status})`
+        );
       }
 
       const listing = result.listing;
