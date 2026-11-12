@@ -3,22 +3,25 @@
 import { useEffect, useState } from "react";
 
 /**
- * RENTIT opening splash.
+ * RENTIT opening — title-card style.
  *
- * Sequence: the R monogram draws itself in white, the wordmark rises letter by
- * letter, an orange rule sweeps underneath, then the whole screen fades to the
- * app. Runs once per browser session and respects reduced-motion.
+ * 0.0s  the background pushes in slowly, vignette settles
+ * 0.3s  the R emblem lands with a heavy bounce and a glow ring
+ * 1.0s  RENTIT expands into place, tracking tightening from wide to tight
+ * 1.9s  a light bar sweeps across the wordmark
+ * 2.4s  the orange rule draws and the tagline fades up
+ * 4.2s  hold, then fade to the app
  */
 export default function Splash() {
   const [phase, setPhase] = useState<"hidden" | "show" | "leave">("hidden");
 
   useEffect(() => {
-    if (sessionStorage.getItem("rentit_splash_v2")) return;
-    sessionStorage.setItem("rentit_splash_v2", "1");
+    if (sessionStorage.getItem("rentit_splash_v4")) return;
+    sessionStorage.setItem("rentit_splash_v4", "1");
 
     setPhase("show");
-    const leave = setTimeout(() => setPhase("leave"), 1750);
-    const hide = setTimeout(() => setPhase("hidden"), 2250);
+    const leave = setTimeout(() => setPhase("leave"), 4200);
+    const hide = setTimeout(() => setPhase("hidden"), 4750);
 
     return () => {
       clearTimeout(leave);
@@ -31,108 +34,121 @@ export default function Splash() {
   return (
     <div
       aria-hidden="true"
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center transition-opacity duration-500 ${phase === "leave" ? "opacity-0" : "opacity-100"
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden transition-opacity duration-500 ${phase === "leave" ? "opacity-0" : "opacity-100"
         }`}
-      style={{
-        background:
-          "radial-gradient(120% 90% at 50% 0%, #2E6BFF 0%, #2563EB 42%, #1D4ED8 72%, #1637A8 100%)",
-      }}
     >
       <style>{`
-        /* monogram draws itself */
-        @keyframes rq-draw {
-          from { stroke-dashoffset: 160; }
-          to   { stroke-dashoffset: 0; }
+        @keyframes rq4-push {
+          from { transform: scale(1.18); }
+          to   { transform: scale(1); }
         }
-        /* wordmark letters rise out of a mask */
-        @keyframes rq-rise {
-          from { transform: translateY(110%); }
-          to   { transform: translateY(0); }
+        @keyframes rq4-vignette {
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
-        /* orange rule sweeps left to right */
-        @keyframes rq-sweep {
+        @keyframes rq4-emblem {
+          0%   { opacity: 0; transform: scale(2.4) translateY(14px); filter: blur(10px); }
+          55%  { opacity: 1; transform: scale(0.94) translateY(0); filter: blur(0); }
+          75%  { transform: scale(1.04); }
+          100% { opacity: 1; transform: scale(1); filter: blur(0); }
+        }
+        @keyframes rq4-ring {
+          0%   { opacity: 0; transform: scale(0.5); }
+          30%  { opacity: 0.5; }
+          100% { opacity: 0; transform: scale(2.1); }
+        }
+        @keyframes rq4-expand {
+          0%   { opacity: 0; transform: scale(0.82); letter-spacing: 0.55em; filter: blur(6px); }
+          60%  { opacity: 1; filter: blur(0); }
+          100% { opacity: 1; transform: scale(1); letter-spacing: 0.12em; filter: blur(0); }
+        }
+        @keyframes rq4-shine {
+          0%   { transform: translateX(-140%) skewX(-18deg); }
+          100% { transform: translateX(240%) skewX(-18deg); }
+        }
+        @keyframes rq4-rule {
           from { transform: scaleX(0); }
           to   { transform: scaleX(1); }
         }
-        /* soft glow behind the mark */
-        @keyframes rq-bloom {
-          0%   { opacity: 0; transform: scale(0.7); }
-          60%  { opacity: 0.5; }
-          100% { opacity: 0.28; transform: scale(1); }
-        }
-        @keyframes rq-fade-up {
+        @keyframes rq4-tag {
           from { opacity: 0; transform: translateY(10px); }
           to   { opacity: 1; transform: none; }
         }
+        @keyframes rq4-breathe {
+          0%, 100% { opacity: 0.9; }
+          50%      { opacity: 1; }
+        }
 
-        .rq-s-mark {
-          stroke-dasharray: 160;
-          stroke-dashoffset: 160;
-          animation: rq-draw 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.1s forwards;
+        .rq4-bg { animation: rq4-push 5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .rq4-vignette { animation: rq4-vignette 1.2s ease-out both; }
+        .rq4-emblem { animation: rq4-emblem 1.05s cubic-bezier(0.34, 1.4, 0.64, 1) 0.3s both; }
+        .rq4-ring { animation: rq4-ring 1.5s ease-out 0.45s both; }
+        .rq4-word {
+          animation: rq4-expand 1.15s cubic-bezier(0.16, 1, 0.3, 1) 1.0s both,
+                     rq4-breathe 3s ease-in-out 2.2s infinite;
         }
-        .rq-s-glow {
-          animation: rq-bloom 1.2s ease-out 0.15s both;
-        }
-        .rq-s-letter {
-          display: inline-block;
-          animation: rq-rise 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
-        }
-        .rq-s-rule {
-          transform-origin: left center;
-          animation: rq-sweep 0.55s cubic-bezier(0.65, 0, 0.35, 1) 1.02s both;
-        }
-        .rq-s-tag {
-          animation: rq-fade-up 0.5s ease-out 1.15s both;
-        }
+        .rq4-shine { animation: rq4-shine 1.05s cubic-bezier(0.4, 0, 0.2, 1) 1.95s both; }
+        .rq4-rule { transform-origin: center; animation: rq4-rule 0.55s cubic-bezier(0.65, 0, 0.35, 1) 2.4s both; }
+        .rq4-tag { animation: rq4-tag 0.5s ease-out 2.7s both; }
 
         @media (prefers-reduced-motion: reduce) {
-          .rq-s-mark, .rq-s-glow, .rq-s-letter, .rq-s-rule, .rq-s-tag {
+          .rq4-bg, .rq4-vignette, .rq4-emblem, .rq4-ring, .rq4-word, .rq4-shine, .rq4-rule, .rq4-tag {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
-            stroke-dashoffset: 0 !important;
+            filter: none !important;
+            letter-spacing: 0.12em !important;
           }
         }
       `}</style>
 
-      <div className="relative flex flex-col items-center px-8">
-        {/* bloom */}
-        <span className="rq-s-glow absolute top-2 w-40 h-40 rounded-full bg-white blur-2xl" />
+      {/* background */}
+      <div
+        className="rq4-bg absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(120% 85% at 50% 8%, #3A76FF 0%, #2563EB 34%, #1B44C4 66%, #0C1F63 100%)",
+        }}
+      />
+      <div className="rq4-vignette absolute inset-0 bg-[radial-gradient(80%_60%_at_50%_50%,transparent_0%,rgba(6,14,45,0.55)_100%)]" />
 
-        {/* logo tile */}
-        <div className="relative w-20 h-20 rounded-3xl bg-white shadow-[0_18px_40px_rgba(9,20,60,0.35)] flex items-center justify-center mb-7">
-          <svg width="46" height="46" viewBox="0 0 80 80" fill="none" aria-hidden="true">
-            <path
-              className="rq-s-mark"
-              d="M24 68 V20 H46 a13 13 0 0 1 0 26 H26 M48 46 L64 68"
-              stroke="#2563EB"
-              strokeWidth="7"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <circle cx="60" cy="22" r="4" fill="#F97316" opacity="0" />
-          </svg>
+      <div className="relative z-10 flex flex-col items-center px-6">
+        {/* emblem */}
+        <div className="relative mb-8 flex h-[92px] w-[92px] items-center justify-center">
+          <span className="rq4-ring absolute inset-0 rounded-full border-2 border-white/50" />
+          <div className="rq4-emblem flex h-full w-full items-center justify-center rounded-[28px] bg-white shadow-[0_26px_60px_rgba(4,12,40,0.55)]">
+            <span className="text-[46px] font-black leading-none text-[#2563EB]">R</span>
+          </div>
         </div>
 
-        {/* wordmark */}
-        <div className="flex overflow-hidden text-white text-[40px] leading-none font-black tracking-[-0.02em]">
-          {"RENTIT".split("").map((letter, i) => (
-            <span key={i} className="overflow-hidden">
-              <span
-                className="rq-s-letter"
-                style={{ animationDelay: `${0.32 + i * 0.06}s` }}
-              >
-                {letter}
-              </span>
-            </span>
-          ))}
+        {/* wordmark with a light bar sweeping across it */}
+        <div className="relative overflow-hidden px-2">
+          <div
+            className="rq4-word text-white font-black leading-none"
+            style={{
+              fontSize: "46px",
+              letterSpacing: "0.12em",
+              textShadow: "0 10px 30px rgba(4, 12, 40, 0.45)",
+            }}
+          >
+            RENTIT
+          </div>
+          <span
+            className="rq4-shine pointer-events-none absolute inset-y-0 -left-1/3 w-1/3"
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.75) 50%, rgba(255,255,255,0) 100%)",
+              filter: "blur(6px)",
+              mixBlendMode: "screen",
+            }}
+          />
         </div>
 
         {/* orange rule */}
-        <div className="mt-3 h-[3px] w-28 rounded-full bg-[#F97316] rq-s-rule" />
+        <div className="rq4-rule mt-4 h-[3px] w-32 rounded-full bg-[#F97316]" />
 
-        <p className="rq-s-tag mt-4 text-[13px] font-medium text-white/85 tracking-wide">
-          Rent smart. Spend less.
+        <p className="rq4-tag mt-4 text-[12.5px] font-medium tracking-[0.18em] text-white/80 uppercase">
+          Rent smart · Spend less
         </p>
       </div>
     </div>
