@@ -13,13 +13,16 @@ import { useEffect, useState } from "react";
  * 4.2s  hold, then fade to the app
  */
 export default function Splash() {
-  const [phase, setPhase] = useState<"hidden" | "show" | "leave">("hidden");
+  // Starts visible so the very first paint is the splash, never the home page.
+  const [phase, setPhase] = useState<"show" | "leave" | "hidden">("show");
 
   useEffect(() => {
-    if (sessionStorage.getItem("rentit_splash_v4")) return;
+    if (sessionStorage.getItem("rentit_splash_v4")) {
+      setPhase("hidden"); // already seen this session - disappear immediately
+      return;
+    }
     sessionStorage.setItem("rentit_splash_v4", "1");
 
-    setPhase("show");
     const leave = setTimeout(() => setPhase("leave"), 4200);
     const hide = setTimeout(() => setPhase("hidden"), 4750);
 
