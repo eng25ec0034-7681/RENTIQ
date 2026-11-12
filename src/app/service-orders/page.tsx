@@ -10,6 +10,9 @@ import {
   Package,
   Printer,
   Phone,
+  Copy,
+  Check,
+  ChevronLeft,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -74,6 +77,7 @@ export default function ServiceOrdersPage() {
     Record<string, { name: string | null; phone: string | null }>
   >({});
   const [codeFetchErrors, setCodeFetchErrors] = useState<Record<string, boolean>>({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [cardErrors, setCardErrors] = useState<Record<string, string | null>>({});
   const [cancellingIds, setCancellingIds] = useState<Record<string, boolean>>({});
   const [confirmingIds, setConfirmingIds] = useState<Record<string, boolean>>({});
@@ -148,6 +152,16 @@ export default function ServiceOrdersPage() {
         delete next[orderId];
         return next;
       });
+    }
+  };
+
+  const copyCode = async (orderId: string, code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedId(orderId);
+      setTimeout(() => setCopiedId((cur) => (cur === orderId ? null : cur)), 2000);
+    } catch {
+      // Clipboard blocked - the digits stay selectable on screen.
     }
   };
 
@@ -298,6 +312,23 @@ export default function ServiceOrdersPage() {
     });
   }, [orders, codes]);
 
+  // Keep the code and status fresh while any order is still in play.
+  useEffect(() => {
+    const hasLiveOrder = orders.some(
+      (o) =>
+        o.job_status !== "COMPLETED" &&
+        o.job_status !== "CANCELLED" &&
+        o.job_status !== "NO_PARTNER_FOUND"
+    );
+    if (!hasLiveOrder) return;
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") loadOrders(true);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [orders, loadOrders]);
+
   return (
     <div
       className="flex-1 flex flex-col px-4 py-6 max-w-xl mx-auto w-full"
@@ -308,6 +339,22 @@ export default function ServiceOrdersPage() {
         paddingRight: "calc(1rem + env(safe-area-inset-right, 0px))",
       }}
     >
+      <div className="flex items-center justify-between mb-4">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-sm font-semibold text-brand-teal min-h-[44px]"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Home
+        </Link>
+        <Link
+          href="/orders"
+          className="text-sm font-semibold text-slate-400 min-h-[44px] inline-flex items-center"
+        >
+          My rentals
+        </Link>
+      </div>
+
       <header className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
@@ -476,26 +523,59 @@ export default function ServiceOrdersPage() {
                 </div>
 
                 {/* Handover Code */}
-                {showCode && (
-                  <div className="mt-2 bg-slate-950/80 border border-slate-800 rounded-xl p-4 text-center">
-                    <p className="text-base text-slate-300 font-medium mb-1">
+                {showCode ? (
+                  <div className="mt-2 bg-brand-teal/10 border border-brand-teal/30 rounded-xl p-4 text-center">
+                    <p className="text-sm text-slate-400 font-medium mb-1">
                       Show this code to your partner at handover
                     </p>
                     {codes[order.order_id] ? (
-                      <div className="text-3xl font-mono font-bold tracking-[0.25em] text-[#00E5B0]">
-                        {codes[order.order_id]}
-                      </div>
+                      <>
+                        <div
+                          className="text-4xl font-mono font-bold tracking-[0.35em] text-brand-teal select-all py-1"
+                          aria-label={`Handover code ${codes[order.order_id]}`}
+                        >
+                          {codes[order.order_id]}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => copyCode(order.order_id, codes[order.order_id])}
+                          className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal min-h-[44px] px-3"
+                        >
+                          {copiedId === order.order_id ? (
+                            <>
+                              <Check className="w-4 h-4" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4" />
+                              Copy code
+                            </>
+                          )}
+                        </button>
+                      </>
                     ) : codeFetchErrors[order.order_id] ? (
-                      <div className="flex items-center justify-center py-1 text-slate-400 text-base">
+                      <div className="flex items-center justify-center py-1 text-slate-400 text-sm">
                         <span>Code not available yet. Tap Refresh.</span>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center gap-2 py-1 text-slate-400 text-base">
-                        <Loader2 className="w-5 h-5 animate-spin text-[#00E5B0]" />
+                      <div className="flex items-center justify-center gap-2 py-1 text-slate-400 text-sm">
+                        <Loader2 className="w-5 h-5 animate-spin text-brand-teal" />
                         <span>Loading code...</span>
                       </div>
                     )}
                   </div>
+                ) : (
+                  order.job_status !== "COMPLETED" &&
+                  order.job_status !== "CANCELLED" &&
+                  order.job_status !== "NO_PARTNER_FOUND" && (
+                    <div className="mt-2 bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-center">
+                      <p className="text-sm text-slate-400">
+                        No handover code yet. It appears here as soon as a partner
+                        accepts your order.
+                      </p>
+                    </div>
+                  )
                 )}
 
                 {/* Cancel Button */}
