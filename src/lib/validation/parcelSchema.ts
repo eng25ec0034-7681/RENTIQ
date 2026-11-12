@@ -28,6 +28,7 @@ export const parcelSchema = z.object({
     errorMap: () => ({ message: "Payment method must be CASH or UPI" }),
   }),
   contact_phone: z.string().regex(/^[6-9][0-9]{9}$/, { message: "Enter a valid 10-digit mobile number" }),
+  pickup_location: z.string().trim().max(120).optional(),
 });
 
 export type ParcelInput = z.infer<typeof parcelSchema>;

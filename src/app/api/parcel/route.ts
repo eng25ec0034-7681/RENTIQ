@@ -26,6 +26,7 @@ export async function POST(request: Request) {
     no_banned_items: body.no_banned_items ?? body.noBannedItems,
     payment_method: body.payment_method ?? body.paymentMethod,
     contact_phone: body.contact_phone ?? body.contactPhone,
+    pickup_location: body.pickup_location ?? body.pickupLocation,
   };
 
   const parsed = parcelSchema.safeParse(normalizedBody);
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
     no_banned_items: parsed.data.no_banned_items,
     payment_method: parsed.data.payment_method,
     contact_phone: parsed.data.contact_phone,
+    pickup_location: parsed.data.pickup_location ?? null,
   };
 
   const supabase = await createClient();

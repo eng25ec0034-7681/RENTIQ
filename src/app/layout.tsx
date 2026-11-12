@@ -3,6 +3,7 @@ import "./globals.css";
 import "./theme.css";
 import { BottomNav } from "@/components/bottom-nav";
 import { TopNav } from "@/components/top-nav";
+import Splash from "@/components/splash";
 
 export const metadata: Metadata = {
   title: "RENTIT - Rent Smart. Spend Less.",
@@ -31,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-[100dvh] flex flex-col antialiased">
+        <Splash />
         <TopNav />
         <main className="flex-1 w-full max-w-lg mx-auto min-h-[100dvh] flex flex-col pb-20">
           {children}

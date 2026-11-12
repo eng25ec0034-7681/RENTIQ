@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, MessageSquare } from "lucide-react";
+import { Bell, MessageSquare, Truck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export function TopNav() {
@@ -84,6 +84,14 @@ export function TopNav() {
       </Link>
 
       <div className="flex items-center gap-1.5">
+        <Link
+          href="/service-orders"
+          aria-label="Track my orders"
+          className="relative h-10 pl-3 pr-3.5 rounded-xl flex items-center gap-1.5 bg-brand-teal/10 border border-brand-teal/30 text-brand-teal hover:bg-brand-teal/20 transition min-h-[44px]"
+        >
+          <Truck className="w-4 h-4" />
+          <span className="text-xs font-bold">Track</span>
+        </Link>
         <Link
           href="/messages"
           aria-label="Messages"

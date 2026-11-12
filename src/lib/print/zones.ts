@@ -44,5 +44,6 @@ export function buildPrintInsert(userId: string, input: any) {
     pickup_zone: input.pickup_zone ?? input.pickupZone,
     file_path: input.file_path ?? input.filePath,
     contact_phone: input.contact_phone ?? input.contactPhone,
+    pickup_location: input.pickup_location ?? input.pickupLocation ?? null,
   };
 }

@@ -40,6 +40,7 @@ export default function PrintPage() {
   const [dropPoint, setDropPoint] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "UPI">("CASH");
   const [contactPhone, setContactPhone] = useState("");
+  const [pickupLocation, setPickupLocation] = useState("");
 
   // Catalogue
   const [catalogue, setCatalogue] = useState<StationeryItem[]>([]);
@@ -158,6 +159,11 @@ export default function PrintPage() {
     e.preventDefault();
     setError(null);
 
+    if (!/^[6-9][0-9]{9}$/.test(contactPhone.trim())) {
+      setError("Enter a valid 10-digit mobile number so your partner can reach you.");
+      return;
+    }
+
     if (!file) {
       setError("Please select a file to upload.");
       return;
@@ -241,6 +247,7 @@ export default function PrintPage() {
           paymentMethod,
           contact_phone: contactPhone,
           file_path: storagePath,
+          pickup_location: pickupLocation,
         }),
       });
 
@@ -617,6 +624,22 @@ export default function PrintPage() {
                 <span className="text-[#00E5B0]">₹{previewTotals.total}</span>
               </div>
             </div>
+          </div>
+
+          {/* Pickup Location */}
+          <div className="mb-4">
+            <label htmlFor="pickupLocation" className="block text-sm font-semibold text-slate-300 mb-1.5">
+              Pickup location <span className="text-slate-500">(building, floor, room)</span>
+            </label>
+            <input
+              id="pickupLocation"
+              type="text"
+              value={pickupLocation}
+              onChange={(e) => setPickupLocation(e.target.value)}
+              placeholder="e.g. Library Block, 2nd floor, Room 204"
+              maxLength={120}
+              className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-white text-base placeholder-slate-400 focus:outline-none focus:border-brand-teal min-h-[44px]"
+            />
           </div>
 
           {/* Contact Phone */}
